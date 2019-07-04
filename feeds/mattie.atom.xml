@@ -1,0 +1,1213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>_mattie_id_au - mattie</title><link href="http://mattie.id.au/" rel="alternate"></link><link href="http://mattie.id.au/feeds/mattie.atom.xml" rel="self"></link><id>http://mattie.id.au/</id><updated>2017-02-10T14:35:00+08:00</updated><subtitle>step back, observe, re-engage</subtitle><entry><title>Yeelight and Hyperion basic API and front-end</title><link href="http://mattie.id.au/posts/2017-02-yeelight-hyperion-front-end.html" rel="alternate"></link><published>2017-02-10T14:35:00+08:00</published><updated>2017-02-10T14:35:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2017-02-10:/posts/2017-02-yeelight-hyperion-front-end.html</id><summary type="html">&lt;p&gt;Over the last week I've been looking into creating a basic web-service to easily interact with my lights around my flat. Currently, I have two Yeelights and a LightPack, which is located on the back of my TV.&lt;/p&gt;</summary><content type="html">&lt;p&gt;Over the last week I've been looking into creating a basic web-service to easily interact with my lights around my flat. Currently, I have two Yeelights and a LightPack, which is located on the back of my TV.&lt;/p&gt;
+&lt;h3&gt;Stuff tied into this&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://www.raspberrypi.org/products/model-b/"&gt;Raspberry Pi 1 Model B&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://play.google.com/store/apps/details?id=net.dinglisch.android.taskerm&amp;amp;hl=en"&gt;Tasker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://play.google.com/store/apps/details?id=com.joaomgcd.autovoice&amp;amp;hl=en"&gt;AutoVoice&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://hyperion-project.org/"&gt;Hyperion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.lightpack.tv/"&gt;Lightpack 1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.aliexpress.com/item/Original-Xiaomi-Yeelight-II-Smart-LED-Bulb-E27-9W-600-Lumens-Mi-Light-Smart-Phone/32671682019.html"&gt;Yeelights&lt;/a&gt; (~$20 USD)&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://yeelight.readthedocs.io/en/stable/index.html"&gt;python-yeelight&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Cool things it can do RIGHT NOW&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Turn lights on when my phone connects to WiFi&lt;/li&gt;
+&lt;li&gt;Notifications lights from my phone, passed on by Tasker &lt;/li&gt;
+&lt;li&gt;&lt;a href="http://ifttt.com"&gt;IFTTT&lt;/a&gt; events &lt;/li&gt;
+&lt;li&gt;Voice activated lighting cues, eg &lt;em&gt;OK GOOGLE DIM LIGHTS&lt;/em&gt;, turn off, shut up etc using AutoVoice with Tasker&lt;/li&gt;
+&lt;li&gt;Basic &lt;a href="/images/illuminate_webinterface.png"&gt;web dashboard&lt;/a&gt; to fire off effects to devices &lt;/li&gt;
+&lt;li&gt;Using &lt;a href="http://sleep.urbandroid.org/documentation/developer-api/intents-and-content-providers/"&gt;intents&lt;/a&gt; from (Sleep As A Droid)[https://play.google.com/store/apps/details?id=com.urbandroid.sleep&amp;amp;hl=en], turn off my lights when it's time to go to bed&lt;/li&gt;
+&lt;li&gt;~~Let people on the internet mess around with my light globes; this is a good idea~~&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Cool things I'm thinking about doing with it&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;Automatically adjust globe brightness depending on sunrise and sunset&lt;ul&gt;
+&lt;li&gt;Get GPS co-ordinates &lt;a href="http://thegpscoordinates.net/australia/perth"&gt;from here&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Then use this API to return the current sunrise/sunset http://sunrise-sunset.org/api&lt;/li&gt;
+&lt;li&gt;So, Perth would be http://api.sunrise-sunset.org/json?lat=-31.953&amp;amp;lng=115,8575&amp;amp;date=today (Adjust for GMT obvs)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;Audio queues and text to speech from the Raspberry Pi&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;The CODE&lt;/h3&gt;
+&lt;p&gt;I'm running a SimpleHTTP server in Python to handle all GET requests. The requests check to see, firstly, if the device exists and if so, what effect to run on it. As an example: http://localhost:5000/device/effect. I thought this would make it easy to simply craft a HTTP GET rather than posting JSON to it. Also means I can use Tasker without having to use the Send/Except plugin, which is fine and also great, but takes a bit to setup. Not that I'm lazy or anything. It also means I can use IFTTT's Maker to easily hit the &lt;em&gt;AIR QUOTES&lt;/em&gt; API &lt;em&gt;AIR QUOTES&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;You can &lt;a href="https://github.com/spyn/illuminate"&gt;view my source on github&lt;/a&gt;. It was written over a few days and strongly requires a re-factor.&lt;/p&gt;
+&lt;h3&gt;Setting up Tasker&lt;/h3&gt;
+&lt;p&gt;This can be a repetative process, but you can also copy the tasks you edit. AutoVoice is completely optional of course, and only if you're a giant nerd and want to tell OK Google to do stuff. Also excuse the ridiculously sized images. &lt;/p&gt;
+&lt;p&gt;Creating a task is fairly simple. You just need to use HTTP Get to push commands off to the Python &lt;em&gt;webapi&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;While on the tasks tab...&lt;/li&gt;
+&lt;li&gt;New Task Name =&amp;gt; ~whateva~&lt;/li&gt;
+&lt;li&gt;Plus =&amp;gt; Net =&amp;gt; HTTP Get&lt;/li&gt;
+&lt;li&gt;Enter the URL for the illuminate webserver and the device and effect, eg. http://10.1.1.69:5000/cool_light/good_effect&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So, my profile for my Snapchat notification is this: &lt;a href="/images/illuminate_tasker_profiles_1.png"&gt;SnapeChatte in Tasker&lt;/a&gt;. To do this..&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;While on the profile tab...&lt;/li&gt;
+&lt;li&gt;Press the plus button, then Add Event =&amp;gt; UI Event =&amp;gt; Notification&lt;/li&gt;
+&lt;li&gt;Add Event&lt;/li&gt;
+&lt;li&gt;UI Event&lt;/li&gt;
+&lt;li&gt;Notification&lt;/li&gt;
+&lt;li&gt;Owner Application =&amp;gt; Select Snapechat, go back&lt;/li&gt;
+&lt;li&gt;Enter Task&lt;/li&gt;
+&lt;li&gt;Hyperion Yellow&lt;/li&gt;
+&lt;li&gt;Hold down finger on the Hyperion Yellow task&lt;/li&gt;
+&lt;li&gt;Add Task&lt;/li&gt;
+&lt;li&gt;Yeelight K Yellow Blink&lt;/li&gt;
+&lt;li&gt;Hold finger down on Notification&lt;/li&gt;
+&lt;li&gt;Add State &lt;/li&gt;
+&lt;li&gt;Net =&amp;gt; Wifi Connected&lt;/li&gt;
+&lt;li&gt;SSID =&amp;gt; Enter your SSID for your WiFi&lt;/li&gt;
+&lt;li&gt;Done!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Breaking it down...&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Once we get a notification from the App Snapchat &lt;em&gt;AND&lt;/em&gt; if we're connected to my local WiFi:&lt;/li&gt;
+&lt;li&gt;Run task Hyperion Yellow, which will light my TV's backlights yellow&lt;/li&gt;
+&lt;li&gt;Run task Yeelight K Yellow Blink, which will blink the kitchen Yeelight&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;a href="/images/illuminate_tasker_profiles_3a_task_edit.png"&gt;Adding a HTTP Get request&lt;/a&gt; | &lt;a href="/images/illuminate_tasker_profiles_3_httpget.png"&gt;Editing the Task&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;My "OK Google Dim Lights" profile is as follows:&lt;/p&gt;
+&lt;p&gt;&lt;a href="/images/illuminate_tasker_profiles_2_autovoice.png"&gt;AutoVoice in Tasker&lt;/a&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Once we get the voice command 'Dim Lights' &lt;em&gt;AND&lt;/em&gt; if we're connected to my local WiFi&lt;/li&gt;
+&lt;li&gt;Run task Yeelight Dim&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The configuration for the above event looks like this: &lt;a href="/images/illuminate_tasker_profiles_2a_autovoice.png"&gt;AutoVoice in Tasker Event&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Yeelights&lt;/h3&gt;
+&lt;p&gt;Yes, you can ping your light globes now; what a future we live in.&lt;/p&gt;
+&lt;p&gt;It took me a while to workout how to enable the TCP JSON service on these lights. Turns out you need to download the &lt;a href="https://www.yeelight.com/en_US/developer"&gt;Developer Mode&lt;/a&gt; application, then enable developer mode on each light globe. Xiaomi have also included a very comprehensive &lt;a href="https://www.yeelight.com/download/Yeelight_Inter-Operation_Spec.pdf"&gt;API documentation&lt;/a&gt;. But I'm being super lazy and using the &lt;a href="http://yeelight.readthedocs.io/en/stable/index.html"&gt;python-yeelight&lt;/a&gt; package because it does pretty much everything I want it to do.&lt;/p&gt;
+&lt;h3&gt;Overall&lt;/h3&gt;
+&lt;p&gt;It was a pretty fun project. I think I'll need to upgrade my Raspberry Pi if I'm going to be adding text-to-speech. It's already processing video through to Hyperion!
+Also, please don't DDoS my lightbulbs. Thank you kindly. &lt;/p&gt;</content><category term="hyperion"></category><category term="lightpack"></category><category term="raspberrypi"></category><category term="rpi"></category><category term="ambilight"></category><category term="yeelight"></category><category term="IoT"></category><category term="python"></category><category term="api"></category></entry><entry><title>boblightd and SteamOS</title><link href="http://mattie.id.au/posts/2014-11-boblightd-and-steamos.html" rel="alternate"></link><published>2014-11-01T20:35:00+08:00</published><updated>2014-11-01T20:35:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2014-11-01:/posts/2014-11-boblightd-and-steamos.html</id><summary type="html">&lt;p&gt;Setting up boblightd with SteamOS&lt;/p&gt;</summary><content type="html">&lt;p&gt;Having some spare time, I thought I would see if it is possible to setup boblightd with SteamOS. &lt;/p&gt;
+&lt;p&gt;It looks like it's possible, with X11 at least.&lt;/p&gt;
+&lt;p&gt;https://code.google.com/p/boblight/wiki/Compiling&lt;/p&gt;
+&lt;p&gt;Firstly, I added the wheezy distro to apt sources. &lt;/p&gt;
+&lt;p&gt;It doesn't look like the libraries that are required, so I'm going to have to add some apt repos
+http://steamcommunity.com/groups/steamuniverse/discussions/1/648816742742587380/&lt;/p&gt;
+&lt;p&gt;Also, openssh-server, because I'm lazy and don't want to do it via the keyboard.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo apt-get install libx11-dev libgl1-mesa-dev libxrender-dev libxext-dev portaudio19-dev libavcodec-dev libavformat-dev libavdevice-dev
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;I ommited libswscale-dev, as it appears another version is installed. Let's hope that it'll compile ok!&lt;/p&gt;
+&lt;p&gt;It appears to be missing libusb too!&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;apt-get install libusb-1.0.0-dev
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;ffmpeg - because I think we want v4l support, for boblight&lt;/p&gt;
+&lt;p&gt;but we need to install libswscale2 in order for it to compile --with-ffmpeg&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;apt-get remove ffmpeg libav-tools libavfilter2 libavfilter4 libswscale2 xbmc xbmc-bin
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;let's install XBMC again, because it's a nice to have&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;apt-get install xbmc
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;It's compling okay, let's build!&lt;/p&gt;
+&lt;p&gt;oops, apt-get install libtool g++ (no g++ was found)&lt;/p&gt;
+&lt;p&gt;Looks like boblight doesn't come with support for lightpack, so use this one &lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;https://github.com/timsat/boblight-lightpack&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;let's try that again... that worked&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;./configure --with-ffmpeg
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You will have to open boblight-v4l.cpp and videogabber.cpp and add the unistd header to the code, for some reason this will cause errors when you try to compile boblight&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;vim&lt;/span&gt; &lt;span class="n"&gt;src&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;clients&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;boblight&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v4l&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;boblight&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v4l&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cpp&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;some&lt;/span&gt; &lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;with&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;rest&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;headers&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;vim&lt;/span&gt; &lt;span class="n"&gt;src&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;clients&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;boblight&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;v4l&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;videograbber&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cpp&lt;/span&gt;
+&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;some&lt;/span&gt; &lt;span class="n"&gt;where&lt;/span&gt; &lt;span class="n"&gt;with&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;rest&lt;/span&gt; &lt;span class="n"&gt;of&lt;/span&gt; &lt;span class="n"&gt;the&lt;/span&gt; &lt;span class="n"&gt;headers&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="cp"&gt;#include&lt;/span&gt; &lt;span class="cpf"&gt;&amp;lt;unistd.h&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;./configure --with-ffmpeg
+make clean &amp;amp;&amp;amp; make
+sudo make install
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Hooray, we have a build. Now, we need to edit /etc/boblight.conf&lt;/p&gt;
+&lt;p&gt;First, let's find the USB device&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;desktop@steamos:/usr/src/boblight-read-only/arduino$ lsusb
+Bus 001 Device 003: ID 1d50:6022 OpenMoko, Inc.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;While we're playing with USB devices, we need to make the usb port readable by the steam user, so...&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;  idVendor           0x1d50 OpenMoko, Inc.
+  idProduct          0x6022
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo vim /etc/udev/rules.d/69-persistent-usb.rules
+and add
+ATTRS{idVendor}==&amp;quot;1d50&amp;quot;,ATTRS{idProduct}==&amp;quot;6022&amp;quot;,MODE=&amp;quot;0666&amp;quot;,GROUP=&amp;quot;video&amp;quot;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Here is my version of boblight.conf that I pulled from my XBMC media centre&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo vim /etc/boblight.conf
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;[global]&lt;/span&gt;
+&lt;span class="na"&gt;interface 127.0.0.1&lt;/span&gt;
+&lt;span class="na"&gt;port 19333&lt;/span&gt;
+
+&lt;span class="k"&gt;[device]&lt;/span&gt;
+&lt;span class="na"&gt;name ambilight&lt;/span&gt;
+&lt;span class="na"&gt;channels 30&lt;/span&gt;
+&lt;span class="na"&gt;type lightpack&lt;/span&gt;
+&lt;span class="na"&gt;output /dev/usb/hiddev0&lt;/span&gt;
+&lt;span class="na"&gt;interval 20000&lt;/span&gt;
+&lt;span class="na"&gt;debug on&lt;/span&gt;
+&lt;span class="c1"&gt;#bus 1&lt;/span&gt;
+&lt;span class="c1"&gt;#address 6&lt;/span&gt;
+&lt;span class="c1"&gt;#debug true&lt;/span&gt;
+
+&lt;span class="k"&gt;[color]&lt;/span&gt;
+&lt;span class="na"&gt;name red&lt;/span&gt;
+&lt;span class="na"&gt;rgb FF0000&lt;/span&gt;
+
+&lt;span class="k"&gt;[color]&lt;/span&gt;
+&lt;span class="na"&gt;name green&lt;/span&gt;
+&lt;span class="na"&gt;rgb 00FF00&lt;/span&gt;
+
+&lt;span class="k"&gt;[color]&lt;/span&gt;
+&lt;span class="na"&gt;name blue&lt;/span&gt;
+&lt;span class="na"&gt;rgb 0000FF&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 1&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 28&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 29&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 30&lt;/span&gt;
+&lt;span class="na"&gt;hscan 0 16.67&lt;/span&gt;
+&lt;span class="na"&gt;vscan 75 100&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 2&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 19&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 20&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 21&lt;/span&gt;
+&lt;span class="na"&gt;hscan 0 16.67&lt;/span&gt;
+&lt;span class="na"&gt;vscan 50 75&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 3&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 16&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 17&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 18&lt;/span&gt;
+&lt;span class="na"&gt;hscan 0 16.67&lt;/span&gt;
+&lt;span class="na"&gt;vscan 25 50&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 4&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 22&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 23&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 24&lt;/span&gt;
+&lt;span class="na"&gt;hscan 0 16.67&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 25&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 5&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 25&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 26&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 27&lt;/span&gt;
+&lt;span class="na"&gt;hscan 0 16.67&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 16.67&lt;/span&gt;
+
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 6&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 1&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 2&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 3&lt;/span&gt;
+&lt;span class="na"&gt;hscan 50 66.67&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 16.67&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 7&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 10&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 11&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 12&lt;/span&gt;
+&lt;span class="na"&gt;hscan 66.67 83.33&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 16.67&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 8&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 7&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 8&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 9&lt;/span&gt;
+&lt;span class="na"&gt;hscan 83.33 100&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 16.67&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 9&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 13&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 14&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 15&lt;/span&gt;
+&lt;span class="na"&gt;hscan 83.33 100&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 25&lt;/span&gt;
+
+&lt;span class="k"&gt;[light]&lt;/span&gt;
+&lt;span class="na"&gt;name 10&lt;/span&gt;
+&lt;span class="na"&gt;color red ambilight 4&lt;/span&gt;
+&lt;span class="na"&gt;color green ambilight 5&lt;/span&gt;
+&lt;span class="na"&gt;color blue ambilight 6&lt;/span&gt;
+&lt;span class="na"&gt;hscan 0 0&lt;/span&gt;
+&lt;span class="na"&gt;vscan 0 0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;We now need the daemon and the client to launch when lightvm loads&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo vim /etc/X11/Xsession.d/91boblight
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/bash&lt;/span&gt;
+&lt;span class="nb"&gt;export&lt;/span&gt; &lt;span class="nv"&gt;DISPLAY&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;:0
+boblightd -f
+sleep &lt;span class="m"&gt;2&lt;/span&gt;
+boblight-X11 -x -i &lt;span class="m"&gt;0&lt;/span&gt;.03 -o &lt;span class="nv"&gt;value&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;5&lt;/span&gt;.0 -o &lt;span class="nv"&gt;saturation&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;.0 -o &lt;span class="nv"&gt;speed&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;60&lt;/span&gt;.0 &lt;span class="p"&gt;&amp;amp;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;And we need to add it to Xsession.options&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo vim /etc/X11/Xsession.options
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;boblight
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Reboot, and you should have a working ambilight. I've found it to be completely slow and unuseable, but it was an experience.&lt;/p&gt;
+&lt;h3&gt;These things FAILED&lt;/h3&gt;
+&lt;p&gt;Now I tried doing this, but I could never get it to work. Appears SteamOS doesn't run through SysV? I don't know. I spent hours on this.&lt;/p&gt;
+&lt;p&gt;Create a startup script in /etc/init.d&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;vim /etc/init.d/boblightd.sh
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/bin/sh&lt;/span&gt;
+&lt;span class="c1"&gt;### BEGIN INIT INFO&lt;/span&gt;
+&lt;span class="c1"&gt;# Provides:          boblightd&lt;/span&gt;
+&lt;span class="c1"&gt;# Required-Start:    $all&lt;/span&gt;
+&lt;span class="c1"&gt;# Required-Stop:&lt;/span&gt;
+&lt;span class="c1"&gt;# Should-Start:&lt;/span&gt;
+&lt;span class="c1"&gt;# Default-Start:     2 3 4 5&lt;/span&gt;
+&lt;span class="c1"&gt;# Default-Stop:      0 1 6&lt;/span&gt;
+&lt;span class="c1"&gt;# Short-Description: Starts boblightd&lt;/span&gt;
+&lt;span class="c1"&gt;### END INIT INFO&lt;/span&gt;
+&lt;span class="c1"&gt;# OK GO&lt;/span&gt;
+
+&lt;span class="nv"&gt;prog&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;BoblightD&amp;quot;&lt;/span&gt;
+
+&lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;&lt;/span&gt;&lt;span class="nv"&gt;$1&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&lt;/span&gt; in
+  start&lt;span class="o"&gt;)&lt;/span&gt;
+        boblightd -f &amp;gt; /dev/null &lt;span class="m"&gt;2&lt;/span&gt;&amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;
+        &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Starting boblightd...&amp;quot;&lt;/span&gt;
+        &lt;span class="p"&gt;;;&lt;/span&gt;
+  stop&lt;span class="o"&gt;)&lt;/span&gt;
+        &lt;span class="c1"&gt;# No-op&lt;/span&gt;
+        sudo -S killall boblightd
+        &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Stopping boblightd...&amp;quot;&lt;/span&gt;
+        &lt;span class="p"&gt;;;&lt;/span&gt;
+  *&lt;span class="o"&gt;)&lt;/span&gt;
+        &lt;span class="nb"&gt;echo&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;Usage: boblightd.sh [start|stop]&amp;quot;&lt;/span&gt; &amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;&lt;span class="m"&gt;2&lt;/span&gt;
+        &lt;span class="nb"&gt;exit&lt;/span&gt; &lt;span class="m"&gt;3&lt;/span&gt;
+        &lt;span class="p"&gt;;;&lt;/span&gt;
+&lt;span class="k"&gt;esac&lt;/span&gt;
+:
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Needs to run BEFORE lightdm&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;desktop@steamos:~$ sudo update-rc.d boblightd.sh defaults
+&lt;/pre&gt;&lt;/div&gt;</content><category term="steamos"></category><category term="gaming"></category><category term="linux"></category><category term="boblight"></category><category term="ambilight"></category><category term="lightpack"></category></entry><entry><title>Setting up SteamOS</title><link href="http://mattie.id.au/posts/2014-10-setting-up-steamos.html" rel="alternate"></link><published>2014-10-25T10:27:00+08:00</published><updated>2014-10-25T10:27:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2014-10-25:/posts/2014-10-setting-up-steamos.html</id><summary type="html">&lt;p&gt;My experiences setting up SteamOS&lt;/p&gt;</summary><content type="html">&lt;p&gt;On Tuesday, I took the plunge and setup &lt;a href="http://store.steampowered.com/steamos/buildyourown"&gt;SteamOS beta&lt;/a&gt; on my HTPC -
+dual booting into Windows&lt;/p&gt;
+&lt;p&gt;I had to use the ISO, as my mainboard doesn’t appear to support UEFI. It
+is a faily old beast.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;Processor&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Intel&lt;/span&gt; &lt;span class="n"&gt;Duo&lt;/span&gt; 
+&lt;span class="n"&gt;Memory&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;xGB&lt;/span&gt; 
+&lt;span class="n"&gt;Hard&lt;/span&gt; &lt;span class="n"&gt;Drive&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;40&lt;/span&gt;&lt;span class="n"&gt;GB&lt;/span&gt; &lt;span class="n"&gt;space&lt;/span&gt; &lt;span class="n"&gt;allocated&lt;/span&gt; 
+&lt;span class="n"&gt;Video&lt;/span&gt; &lt;span class="n"&gt;Card&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;AMD&lt;/span&gt; &lt;span class="n"&gt;RADEON&lt;/span&gt; 
+&lt;span class="n"&gt;Joystick&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt; &lt;span class="n"&gt;XBOX&lt;/span&gt; &lt;span class="mi"&gt;360&lt;/span&gt; &lt;span class="n"&gt;controller&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Although, my main goal was to Steam Stream games from my desktop, which
+has way more power behind it.&lt;/p&gt;
+&lt;p&gt;The installation did run smoothly, nice hints of debian. I did have to
+run an expert install so I could dual boot. I was running Ubuntu on the
+drive, but I had to make sure it reformatted the partition&lt;/p&gt;
+&lt;p&gt;I did run into a few problems, after installation though, which is
+understandable since SteamOS is -in beta-.&lt;/p&gt;
+&lt;h3&gt;Black screen after installation&lt;/h3&gt;
+&lt;p&gt;It looks like the Radeon card doesn’t work straight out of “the box”&lt;/p&gt;
+&lt;p&gt;I had to follow these steps in order to get the video card working, from
+Reddit &lt;a href="http://www.reddit.com/r/SteamOS/comments/22pgp3/working_suggestions_for_black_screen_after/"&gt;Working suggestions for black screen after&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;After getting that all sorted, the next problem I ran into&lt;/p&gt;
+&lt;h3&gt;Network problems&lt;/h3&gt;
+&lt;p&gt;I had some interesting networking problems. My RealTech network card was
+not installed by default. I had to insmod the device, then manually
+setup the network card.&lt;/p&gt;
+&lt;p&gt;It began to install Steam, and in the Steam installation, the network
+card lost connectivity, for some odd reason, I had to fix it in the
+network manager conf file, and set it to managed. From &lt;a href="http://askubuntu.com/questions/71159/network-manager-says-device-not-managed/"&gt;AskUbuntu&lt;/a&gt;&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;sudo nano /etc/NetworkManager/NetworkManager.conf 
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;and set managed to
+true&lt;/p&gt;
+&lt;p&gt;Steam began to continue the installation after that.&lt;/p&gt;
+&lt;h3&gt;In-house streaming world problems&lt;/h3&gt;
+&lt;p&gt;I had a problem with In-house streaming. It appears that having
+VirtualBox installed messes with the network metric[4]&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;Workaround - 1. Open up Network and Sharing Center 
+2. Click ‘Change Adapter Settings’ 
+3. Right click ‘VirtualBox Host-Only Network’, go to Properties 
+4. Double click “Internet Protocol Version 4 (TCP/IPv4)‘under ’This connection uses the following items’. 
+5. In the Properties page,
+click”Advanced…&amp;quot; 
+6. In the “Advanced TCP/IP Settings”, tab “IP
+Settings”, uncheck the box marked “Automatic Metic” and type in 800 or
+higher.
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;OK all dialogs and run whatever software could not Recieve multicast.&lt;/p&gt;
+&lt;p&gt;The problem stems from Microsoft assigning interface Metrics based on
+the driver’s own reported Link speed in Windows 7. Since that’s all 1GB,
+there is a clash on metric. From &lt;a href="https://www.virtualbox.org/ticket/8698/"&gt;VirtualBox tickets&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;Installing XBMC&lt;/h3&gt;
+&lt;p&gt;I didn’t bother installing XBMC, because it doesn’t support hardware
+rendering on my Radeon, but it should work fine if you have a nVidia
+based video card.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://steamcommunity.com/groups/steamuniverse/discussions/1/648816742742587380/"&gt;Setting up XBMC&lt;/a&gt;&lt;/p&gt;</content><category term="steamos"></category><category term="gaming"></category><category term="linux"></category></entry><entry><title>New blog - using Pelican</title><link href="http://mattie.id.au/posts/2014-10-new-blog-pelican-other.html" rel="alternate"></link><published>2014-10-24T11:30:00+08:00</published><updated>2014-10-24T11:30:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2014-10-24:/posts/2014-10-new-blog-pelican-other.html</id><summary type="html">&lt;p&gt;Bye Wordpress, Hello Pelican&lt;/p&gt;</summary><content type="html">&lt;p&gt;So I've decided to finally get rid of Wordpress. Way too much bloat for what I need. I've made the switch to Pelican.&lt;/p&gt;</content><category term="pelican"></category></entry><entry><title>Fix my brains</title><link href="http://mattie.id.au/posts/2014-02-fix-my-brains.html" rel="alternate"></link><published>2014-02-07T23:00:00+08:00</published><updated>2014-02-07T23:00:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2014-02-07:/posts/2014-02-fix-my-brains.html</id><summary type="html">&lt;p&gt;On Thursday I decided to reach out to my GP and talk to him about my mental health.&lt;/p&gt;</summary><content type="html">&lt;p&gt;On Thursday I decided to reach out to my GP and talk to him about my
+mental health. For the last year and a bit I've felt a lot more
+secluded, quiet and less social. Although, I've always been quiet in
+social situations, I have felt this more so in the last few months.&lt;/p&gt;
+&lt;p&gt;Over the last couple of weeks I've chatted to some of my gaming buddies
+about the situation I feel like I'm in. One of the guys, whom I've known
+for a very long time posted about his condition and how EMDR therapy
+helped him quite significantly, along with talking to a psychologist and
+that he is doing a lot better than he has been before. His story gave me
+a more faith in 'seeing someone about my problems'. Also, over the last
+couple of weeks I've had my bestie come over from Melbourne and we
+talked about mental health, as she's studying to be a nurse, I made a
+promise to make sure I ended up seeing someone to get the ball rolling.&lt;/p&gt;
+&lt;p&gt;I've always felt a bit 'out of it' when I'm around people. Recently I've
+just frozen up during conversations, not sure how to continue, my mind
+literally goes blank. This has started happening a lot more, even when
+talking to people I know very well and enjoy their company. I guess
+that's what triggered me seeking more information. I haven't always been
+so quiet, it's almost like I'm not myself. I'm not even making hilarious
+puns as often anymore, I'm like a piece of flint that's lost it's..
+spark.&lt;/p&gt;
+&lt;p&gt;Anyway, back to the GP, talked to him, a quick checklist of things could
+indicate a social phobia, which most my symptoms contain. He gave me 3
+suggested ways of going about the treatment. Group therapy, CBT or
+medication. Also he gave me a test to do once I got home.&lt;/p&gt;
+&lt;p&gt;So, right now I'm looking into treatments and seeing what would benefit
+me the most. Leaning more towards CBT. I'd rather fix my way of thinking
+then take a gunshot approach.&lt;/p&gt;
+&lt;p&gt;I'll continue to post my progress here.&lt;/p&gt;</content><category term="brains"></category><category term="health"></category><category term="mental health"></category><category term="socphob"></category></entry><entry><title>2014</title><link href="http://mattie.id.au/posts/2014-01-2014.html" rel="alternate"></link><published>2014-01-20T22:55:00+08:00</published><updated>2014-01-20T22:55:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2014-01-20:/posts/2014-01-2014.html</id><summary type="html">&lt;p&gt;Hello 2004&lt;/p&gt;</summary><content type="html">&lt;p&gt;Hello 2014,&lt;/p&gt;
+&lt;p&gt;As people know, I’m not too keen on new year resolutions, so I’ve
+decided on a few things I would like to do this year.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Learn Russian as a language&lt;/strong&gt; - I’ve always been interested in
+    what those crazy glyphs mean, as well as most the population know
+    more than one language, I’d like to learn something new. Also, I
+    like the way it sounds.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Make a song&lt;/strong&gt; - There’s an &lt;a href="http://www.m-audio.com/products/en_us/Oxygen49.html"&gt;Oxygen 49&lt;/a&gt; that’s been gathering
+    dust that I really should put to good use. It’s just sitting there,
+    collecting dust, looking fancy with all it’s numerous knobs and
+    sliders and doing fuck all. I need to learn piano first, so that’s
+    also on the cards. I have &lt;a href="http://www.synthesiagame.com/"&gt;Synthesia&lt;/a&gt; and it’s learning pack that
+    will give me some ground.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Start dating again&lt;/strong&gt; - It’s been over 2 years since I’ve had a
+    girlfriend. It’s been a long time and I’m kinda shy about the idea.
+    I would just like to spend time with someone and do fun things with.
+    Also fun dumb things. It also gets harder to date as you get older.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Write Some Blog Posts&lt;/strong&gt; - I pay for this domain and hosting,
+    although I don’t really put it to good use. Let’s change that.
+    People like my posting, right? Hopefully I can post something once a
+    week. Hooray.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Get out more&lt;/strong&gt; - I’ve spent way too much time watching TV in the
+    last year and staying home, hermitising (hermitosis?). It’s too
+    comfortable to me now and it has to change. I may even start running
+    and roller derby training again (Although I desperately need new
+    skates to do that). I may even take up Lazer Blaze!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I think that wraps it up. I just need to plan and make some short term
+goals, weekly goals. They seem more achievable short term, but hopefully
+will run into long term.&lt;/p&gt;
+&lt;p&gt;Wish me luck. Actually, don’t. I can do this.&lt;/p&gt;</content><category term="2014"></category><category term="getoutsideidiot"></category><category term="goals"></category><category term="music"></category><category term="russian"></category><category term="dating"></category></entry><entry><title>Playing around with Net::Twitter in PERL</title><link href="http://mattie.id.au/posts/2012-07-playing-around-with-nettwitter-in-perl.html" rel="alternate"></link><published>2012-07-07T13:29:00+08:00</published><updated>2012-07-07T13:29:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2012-07-07:/posts/2012-07-playing-around-with-nettwitter-in-perl.html</id><summary type="html">&lt;p&gt;Here are some perl recipes that I've written to help interface with Twitter&lt;/p&gt;</summary><content type="html">&lt;p&gt;Here are some perl recipes that I’ve written that helps interface with
+Twitter and run some basic tasks. You will need to create a Twitter
+application, generate a consumer key and twitter tokens (with read/write
+access).&lt;/p&gt;
+&lt;p&gt;This first piece of code needs to be on all the scripts below. It sets
+up the &lt;a href="http://search.cpan.org/dist/Net-Twitter/lib/Net/Twitter.pod"&gt;Net::Twitter&lt;/a&gt; object and authenticates.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/perl&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt; &lt;span class="nn"&gt;Net::Twitter&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt; &lt;span class="nn"&gt;Net::Twitter::Core&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt; &lt;span class="nn"&gt;Scalar::Util&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;blessed&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;use&lt;/span&gt; &lt;span class="nn"&gt;List::Util&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nn"&gt;Net::Twitter&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;legacy&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$ntc&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nn"&gt;Net::Twitter::Core&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="c1"&gt;#\_with\_traits(traits =&amp;gt; [qw/API::Search/]);&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$consumer&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_key&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;CONSUMER KEY&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$consumer&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_secret&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;CONSUMER SECRET&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$token&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;TWITTER TOKEN&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$token&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_secret&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;TWITTER TOKEN SECRET&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nn"&gt;Net::Twitter&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;traits&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="sx"&gt;qw/OAuth API::REST API::Search/&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+    &lt;span class="n"&gt;consumer&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_key&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$consumer&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_key&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;consumer&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_secret&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$consumer&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_secret&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;access&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_token&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$token&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;access&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_token&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_secret&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$token&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_secret&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The first one, will unfollow Twitter users that do not follow you back.
+Keep in mind that you have a limit of 350 API calls an hour, in able to
+do these actions. The script has been adjusted to end when it reaches
+less than 50 calls left.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_user&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt; &lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_name&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;YOUR USERNAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;});&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$uid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;id&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$r&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;friends&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_ids&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$uid&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$apicalls&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="c1"&gt;# Do this, so we don&amp;#39;t always get the same IDs, mix it up a bit.&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;@friends&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;sort&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="nv"&gt;@&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$r&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;ids&lt;/span&gt;&lt;span class="p"&gt;}});&lt;/span&gt;
+&lt;span class="k"&gt;foreach&lt;/span&gt; &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$id&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;@friends&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$fs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;follows&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$id&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$uid&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$fs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;[\*] &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$id&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;[!] &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$id&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;unfollow&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$id&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="nv"&gt;$apicalls&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;rate&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_limit&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_status&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot; [API:&amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$apicalls&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;remaining\_hits&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;]\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$apicalls&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;remaining\_hits&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="k"&gt;last&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="p"&gt;}&lt;/span&gt; 
+&lt;span class="p"&gt;}&lt;/span&gt; 
+&lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Remember, you can only run this every hour. $apicalls-&amp;gt; {&amp;#39;remaining\_hits&amp;#39;} API calls left.\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The following piece of code keeps a hash of people who are currently
+following you and checks if they still are following you. If they’re
+not, it will send a notification to my phone that a person has
+unfollowed me. I’m using NotifyMyAndroid for notifications. I have a
+cronjob that runs this script every hour.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$f&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$follower&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;./followers.hash&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$unfollow&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;./unfollow.hash&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;e&lt;/span&gt; &lt;span class="nv"&gt;$follower&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;$f&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;retrieve&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$follower&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_file&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;@ids&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$cursor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$r&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nv"&gt;$cursor&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="nv"&gt;$cursor&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$r&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="k"&gt;next&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_cursor&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;$r&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;followers&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_ids&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt; &lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_name&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;YOUR TWITTER USERNAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;cursor&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$cursor&lt;/span&gt; &lt;span class="p"&gt;});&lt;/span&gt;
+    &lt;span class="nb"&gt;push&lt;/span&gt; &lt;span class="nv"&gt;@ids&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;@&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$r&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;ids&lt;/span&gt;&lt;span class="p"&gt;}};&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$flw&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$cnt&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$unfollowers&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;foreach&lt;/span&gt; &lt;span class="nv"&gt;$fid&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;@&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$f&lt;/span&gt;&lt;span class="p"&gt;})&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;foreach&lt;/span&gt; &lt;span class="nv"&gt;$tid&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;@ids&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$tid&lt;/span&gt; &lt;span class="ow"&gt;eq&lt;/span&gt; &lt;span class="nv"&gt;$fid&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nv"&gt;$flw&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$tid&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="k"&gt;next&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nv"&gt;$flw&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;try&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="nv"&gt;$uinfo&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;show&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_user&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$fid&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;friendship&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_exists&lt;/span&gt;&lt;span class="p"&gt;({&lt;/span&gt; &lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_name&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_a&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;screen\_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt; &lt;span class="n"&gt;screen&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_name&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_b&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="s"&gt;&amp;#39;YOUR TWITTER USERNAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="nv"&gt;$unfollowers&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$fid&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;U: &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;screen\_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s"&gt;&amp;quot; ($fid)\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;nma&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_notify&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+                    &lt;span class="nv"&gt;$cnt&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;F: &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$uinfo&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;screen\_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s"&gt;&amp;quot; ($fid)\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+                &lt;span class="p"&gt;}&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+                &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;X: Error?&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+        &lt;span class="n"&gt;catch&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;$fid has been deleted.\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="nv"&gt;$unfollowers&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$fid&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$fid&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="n"&gt;store&lt;/span&gt; &lt;span class="o"&gt;\\&lt;/span&gt;&lt;span class="nv"&gt;@ids&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$follower&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_file&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$cnt&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;- Found $cnt unfollowers.\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="n"&gt;store&lt;/span&gt; &lt;span class="nv"&gt;$unfollowers&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$unfollow&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_file&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="c1"&gt;#print &amp;quot;- No unfollows\\n&amp;quot;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;sub&lt;/span&gt; &lt;span class="nf"&gt;nma&lt;/span&gt;&lt;span class="p"&gt;\_notify {&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;shift&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$userAgent&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nn"&gt;LWP::UserAgent&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="nv"&gt;$userAgent&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;agent&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;NMAScript/1.0&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="nv"&gt;$userAgent&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;env&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_proxy&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$requestURL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sprintf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;https://nma.usk.bz/publicapi/notify?apikey=%s&amp;amp;application=%s&amp;amp;event=%s&amp;amp;description=%s&amp;amp;priority=%d&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;NMA API KEY&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;Twitter&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Unfollowed on YOUR USERNAME by &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;screen\_name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt;
+        &lt;span class="s"&gt;&amp;quot;You were unfollowed by &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s"&gt;&amp;quot; \\nTheir last status: &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$user&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;status&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;text&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;},&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$request&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nn"&gt;HTTP::Request&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;GET&lt;/span&gt; &lt;span class="o"&gt;=&amp;gt;&lt;/span&gt; &lt;span class="nv"&gt;$requestURL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$response&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$userAgent&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;request&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$request&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nv"&gt;$response&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;There’s a thing on Twitter called “FOLLOWBACK” or “TEAMFOLLOWBACK”,
+where Twitter users follow back when you follow them. They don’t always
+follow back so there is a bit of risk involved, if you are inclined to
+grow your follower count (it matters for some people, I guess?)&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$count&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;do&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$sleep&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;120&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="nb"&gt;rand&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;120&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$search&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_term&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;TEAMFOLLOWBACK OR FOLLOWBACK&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$r&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;search&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$search&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_term&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$status&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="nv"&gt;@&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="nv"&gt;$r&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;results&lt;/span&gt;&lt;span class="p"&gt;}}&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$tweeter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$status&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;from&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_user&lt;/span&gt;&lt;span class="p"&gt;};&lt;/span&gt;
+        &lt;span class="c1"&gt;# Don&amp;#39;t bother if we&amp;#39;re already following them&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;friendship&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;&amp;#39;YOUR TWITTER NAME&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nv"&gt;$tweeter&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="k"&gt;my&lt;/span&gt; &lt;span class="nv"&gt;$cf&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$nt&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;create&lt;/span&gt;&lt;span class="o"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_friend&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$tweeter&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+            &lt;span class="nv"&gt;$count&lt;/span&gt;&lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+            &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;+ &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="nv"&gt;$tweeter&lt;/span&gt; &lt;span class="o"&gt;.&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;print&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Added $count ...sleeping\\n&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="nb"&gt;sleep&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;$sleep&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;</content><category term="perl"></category><category term="code"></category><category term="twitter"></category></entry><entry><title>Automate my everythings</title><link href="http://mattie.id.au/posts/2012-06-automate-my-everythings.html" rel="alternate"></link><published>2012-06-13T13:28:00+08:00</published><updated>2012-06-13T13:28:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2012-06-13:/posts/2012-06-automate-my-everythings.html</id><summary type="html">&lt;p&gt;I spent some of the day looking at IFTTT&lt;/p&gt;</summary><content type="html">&lt;p&gt;I spent some of the day, between tasks, to take a look at “if this then
+that” or otherwise known as &lt;a href="http://ifttt.com/"&gt;ifttt&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://ifttt.com/"&gt;ifttt&lt;/a&gt; allows you to essentially script events to actions. For
+example, I wrote a &lt;a href="http://ifttt.com/recipes/40275"&gt;recipe that emails me&lt;/a&gt; when&lt;a href="http://www.gizmodo.com.au/tags/app-deals-of-the-day/"&gt;Gizmodo’s App Deals&lt;/a&gt;
+gets posted, then tells me what mobile applications are on sale for the
+day via email.&lt;/p&gt;
+&lt;p&gt;I got a bit excited and went through some of the recipes that were on
+display and ended up with some tasks that archived all my tweets into
+evernote and my favorites. I’m sure I’ll go over it tonight to see what
+else I can do with it that would be relevant to my interests.&lt;/p&gt;
+&lt;p&gt;There’s also &lt;a href="http://zapier.com/"&gt;zapier.com&lt;/a&gt; (Thanks Jordan S) which can also do the same
+thing, but with different “channels/apps” most noted, GitHub and JIRA!&lt;/p&gt;
+&lt;p&gt;For mobile users, there’s &lt;a href="https://www.onx.ms/"&gt;on{x}&lt;/a&gt;, where you can script events on your
+phone to do certain things. Best bit is that it’s written in JavaScript
+– so you can do quite a bit with it. I haven’t played around with it
+yet, but I’m sure I will in the near future.&lt;/p&gt;</content></entry><entry><title>RITRU: Rad internet tools round up</title><link href="http://mattie.id.au/posts/2012-06-ritru-rad-internet-tools-round-up-2.html" rel="alternate"></link><published>2012-06-03T13:26:00+08:00</published><updated>2012-06-03T13:26:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2012-06-03:/posts/2012-06-ritru-rad-internet-tools-round-up-2.html</id><summary type="html">&lt;p&gt;Here's this weeks round up&lt;/p&gt;</summary><content type="html">&lt;p&gt;Here’s this weeks round up!&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.webdesigncore.com/2012/05/03/30-of-the-best-vector-and-illustrator-free-resources/"&gt;30 of the best vector and illustrations, free&lt;/a&gt; – More free vector art for the masses!&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.youtube.com/watch?v=JdxkVQy7QLM"&gt;Pachelbel Rant&lt;/a&gt; – I knew Basketcase by Greenday sounded familiar.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.onx.ms/"&gt;On{x}&lt;/a&gt; – JavaScript script your Android device.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://techcrunch.com/2010/08/25/scvngr-game-mechanics/0/08/25/scvngr-game-mechanics/"&gt;SCVNGR&lt;/a&gt;-Secret Game Mechanics Playbook. Interesting look into how Zynga develops their games and other developers.&lt;/li&gt;
+&lt;/ul&gt;</content></entry><entry><title>RITRU: Rad internet tools round up</title><link href="http://mattie.id.au/posts/2012-05-ritru-rad-internet-tools-round-up.html" rel="alternate"></link><published>2012-05-27T13:24:00+08:00</published><updated>2012-05-27T13:24:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2012-05-27:/posts/2012-05-ritru-rad-internet-tools-round-up.html</id><summary type="html">&lt;p&gt;More cool stuff on the internet&lt;/p&gt;</summary><content type="html">&lt;p&gt;MORE COOL STUFF ON THE INTERNET&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://mashable.com/2012/05/15/robot-accessories-office/#6390510-Robot-Calculator"&gt;15 Rad Robot Accessories&lt;/a&gt; – Kick ass robot desktoys and the like. (Via @Kasey_&lt;a href="&amp;#109;&amp;#97;&amp;#105;&amp;#108;&amp;#116;&amp;#111;&amp;#58;&amp;#76;&amp;#47;&amp;#64;&amp;#77;&amp;#97;&amp;#115;&amp;#104;&amp;#97;&amp;#98;&amp;#108;&amp;#101;"&gt;&amp;#76;&amp;#47;&amp;#64;&amp;#77;&amp;#97;&amp;#115;&amp;#104;&amp;#97;&amp;#98;&amp;#108;&amp;#101;&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.thisiswhyimbroke.com/"&gt;This Is Why I Am Broke&lt;/a&gt; – Pretty much.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://ifttt.com/"&gt;ifttt&lt;/a&gt; – Put the internet to work for you.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.bulkrenameutility.co.uk/"&gt;Bulk Rename Utility&lt;/a&gt; – A pretty good bulk renaming utility, if you excuse the terrible clutter.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.engadget.com/2012/05/24/insert-coin-cookoo"&gt;Cookoo Watch&lt;/a&gt; – Watch for geeks who want to keep it subtle.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://api.giantbomb.com/"&gt;Whiskey Media&lt;/a&gt; – An API for Comics and Games.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://procatinator.com/"&gt;Procatinator&lt;/a&gt; – CATS AND MUSIC!&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.dzinepress.com/2012/05/20-examples-of-stereographics-that-grab-the-attention/"&gt;20 Examples of Stereographics that Grab the Attention&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.iconspedia.com/"&gt;Iconspedia&lt;/a&gt;-A collection of free icons.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://davidbcalhoun.com/2010/using-navigator-connection-android"&gt;navigator.connection&lt;/a&gt; – Optimizing based on connection speed: using navigator.connection on Android 2.2+ (Via @m4rkmc)&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://t.co/In1oarNY"&gt;Automated Testing of ASP.NET MVC Applications&lt;/a&gt; – Via @uluhonolulu&lt;/li&gt;
+&lt;/ul&gt;</content></entry><entry><title>RITRU: Rad internet tools round up</title><link href="http://mattie.id.au/posts/2012-05-ritr.html" rel="alternate"></link><published>2012-05-20T13:23:00+08:00</published><updated>2012-05-20T13:23:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2012-05-20:/posts/2012-05-ritr.html</id><summary type="html">&lt;p&gt;Here’s a few things I’ve found useful on the internet this week;&lt;/p&gt;</summary><content type="html">&lt;p&gt;Here’s a few things I’ve found useful on the internet this week;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://audiotool.com/"&gt;Audio Tool&lt;/a&gt; – Create music with your web browser.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://t.co/8eBIDUJ0"&gt;Javascript Piano&lt;/a&gt; – A piano written in JavaScript. (via @ZenPsycho)&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://leaflet.cloudmade.com/"&gt;Leaflet&lt;/a&gt; - Create JavaScript maps similar to Google Maps – without having to worry about purchasing a license.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://selection.datavisualization.ch/"&gt;Data Visualisation Tools&lt;/a&gt; – A collection of web based tools you can put together some awesome data visualisations.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://maps.stamen.com/"&gt;Stamen&lt;/a&gt; – Water colour style maps using &lt;a href="http://openstreetmap.org/"&gt;OpenStreetMap&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://opensignalmaps.com/"&gt;OpenSignalMaps&lt;/a&gt; – Find the best mobile network in your area.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://infographics.alltop.com/"&gt;Alltop Infographics&lt;/a&gt; – A collection of links related to infographics.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.easel.ly/"&gt;Easel.ly&lt;/a&gt; - Create infographics online easily.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://venngage.com/"&gt;Venngage&lt;/a&gt; - Create custom infographics online, engage your views and track your results.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://infogr.am/"&gt;Infogram&lt;/a&gt; -   Create interactive infographics.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://schemaverse.com/"&gt;SchemaVerse&lt;/a&gt; - The Schemaverse is a space-based strategy game implemented entirely within a PostgreSQL database.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://hadoop.apache.org/"&gt;HADOOP&lt;/a&gt; – Open source, scalable, distributed computing.&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.mturk.com/mturk/welcome"&gt;Mechanical Turk&lt;/a&gt; - Amazon’s Mechanical Turk, crowd sourcing.&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href="http://microworkers.com/"&gt;Microworkers&lt;/a&gt; – Crowd sourcing little things, such as tweets, facebook likes and other marketing related things.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href="http://webdesignledger.com/tools/15-useful-web-apps-for-designers"&gt;15 Useful Web Apps for Designers&lt;/a&gt; - A bunch of cool web apps for designers or designer at mind.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://djdesignerlab.com/2011/07/06/40-high-quality-free-xhtmlcss-web-template-for-developers/"&gt;40 High Quality Free XHTML/CSS Web Template for Developers&lt;/a&gt; - Some free high quality templates.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://web.appstorm.net/roundups/freelancing-tools/101-apps-for-your-web-app-startup-toolbox/"&gt;101 Apps for Your Web App Startup Toolbox&lt;/a&gt; – Just as the title suggests, there’s quite a few of them.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.vectorstock.com/free-vectors"&gt;Free Vectors&lt;/a&gt; - A whole bunch of free to use vectors presented in thumbnails.&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://desktoppub.about.com/od/freefonts/tp/Free_Handwriting_School_Fonts.htm"&gt;Handwriting Fonts&lt;/a&gt; – Hand writing fonts for kids to trace over.&lt;/li&gt;
+&lt;/ul&gt;</content></entry><entry><title>Commodore 64 ringtones and notifications for Android</title><link href="http://mattie.id.au/posts/2012-02-commodore-64-ringtones-and-notifications-for-android.html" rel="alternate"></link><published>2012-02-05T07:26:00+08:00</published><updated>2012-02-05T07:26:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2012-02-05:/posts/2012-02-commodore-64-ringtones-and-notifications-for-android.html</id><summary type="html">&lt;p&gt;Last night I compiled a list of tones I would like to use on my phone&lt;/p&gt;</summary><content type="html">&lt;p&gt;Last night I compiled a list of tones I would like to use on my phone.
+Most of them are based from classic Commodore 64 games. I spent about 4
+hours converting SID to WAV, then to MP3 to save space on my phone. Just
+thought I would share.&lt;/p&gt;
+&lt;p&gt;The download link is ad sponsored by &lt;a href="http://adf.ly/?id=492079"&gt;adf.ly&lt;/a&gt;, I did this so I could
+recieve some credit for my 4 hours work. So deal with it. It’s also
+about 60MB. So, enjoy!&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://adf.ly/843l1"&gt;60MB of Commodore 64 ringtones and notification tones&lt;/a&gt;&lt;/p&gt;</content><category term="C64"></category><category term="Ringtones"></category><category term="Music"></category><category term="Chiptunes"></category></entry><entry><title>Compiled Pidgin SIPE plugin for Win32</title><link href="http://mattie.id.au/posts/2011-04-compiled-pidgin-sipe-plugin-for-win32.html" rel="alternate"></link><published>2011-04-22T21:39:00+08:00</published><updated>2011-04-22T21:39:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2011-04-22:/posts/2011-04-compiled-pidgin-sipe-plugin-for-win32.html</id><summary type="html">&lt;p&gt;If you want to know how I built it&lt;/p&gt;</summary><content type="html">&lt;p&gt;Update: You can now get builds off &lt;a href="http://sipe.sourceforge.net/"&gt;sourceforge&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;If you want to know how I built it…&lt;/p&gt;
+&lt;p&gt;Since we use OCS at work quite a bit, and recently we’ve updated to
+Group Chat - I’ve manged to compile &lt;a href="http://sipe.sourceforge.net"&gt;libsipe.dll&lt;/a&gt; using the latest
+trunk.&lt;/p&gt;
+&lt;p&gt;I’ll update it when there are updates to the project since I have it all
+running nicely on my Ubuntu box![STRIKEOUT:I’m not sure how to get Group
+Chat up and running as of yet, maybe someone could help me? I don’t know
+what URI to put in. But at least the dialog is there in this plugin
+version.]&lt;/p&gt;
+&lt;p&gt;Managed to sort that one out :) - was entering the wrong group chat
+server URL. I’ve setup autobuilding for every week, you can check out
+the DLLs here \&amp;lt;nope, lost everything in a server crash&gt;&lt;/p&gt;
+&lt;p&gt;If you come across any problems please let me know so I can investigate
+:)&lt;/p&gt;
+&lt;p&gt;Enjoy!&lt;/p&gt;
+&lt;p&gt;Some notes on how I built this Firstly, you need to build Pidgin. I
+followed &lt;a href="http://developer.pidgin.im/wiki/BuildingWinPidgin"&gt;this guide&lt;/a&gt;. But specifically, this is what I did : I built
+everything under /usr/src/pidgin Installed the following packages via
+apt-get
+(&lt;code&gt;sudo apt-get install mingw32 mingw32-binutils mingw32-runtime&lt;/code&gt;)
+Followed Step 2 in the guide linked to the URL above Installed Pidgin’s
+build dependencies as per the guide Followed the cross-compiling guide
+Built pidgin using the mingw make file (using the Build Pidgin
+instructions from the above guide) Once it built cleanly, I grabbed the
+latest source for &lt;a href="http://sipe.sourceforge.net/git/"&gt;libsipe via git&lt;/a&gt;Followed only the 1st step from the
+libsipe website, just to get the code Grabbed the dependencies specified
+in &lt;a href="http://sourceforge.net/apps/mediawiki/sipe/index.php?title=Windows_Build"&gt;this wiki article&lt;/a&gt; I then had to edit the Makefile.mingw (and
+other occurrences of the file) to meet the pidgin version I was
+compiling against Tried to compile it, it came back with a whole bunch
+of errors and I manually went through all the error’ing related files
+(from memory, usually a bunch of header files) and made sure they were
+set&lt;/p&gt;
+&lt;p&gt;Handy links&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://www.ocspedia.com/GroupChat/Group\_Chat\_Logging.htm"&gt;OCSPedia&lt;/a&gt; -
+Shows how to generate a group chat log file, pretty useful if you want
+to check out what your URI is&lt;/p&gt;
+&lt;p&gt;Update:&lt;/p&gt;
+&lt;p&gt;If you want to grab the latest release (1.12) you can get it from
+&lt;a href="http://dl.dropbox.com/u/127493/libsipe_pidgin-sipe-1.12.0.zip"&gt;here&lt;/a&gt; (dropbox)&lt;/p&gt;</content><category term="libsipe"></category><category term="OCS"></category><category term="Pidgin"></category></entry><entry><title>Maybe a bit more about my inner geek</title><link href="http://mattie.id.au/posts/2010-12-maybe-a-bit-more-about-my-inner-geek.html" rel="alternate"></link><published>2010-12-16T13:41:00+08:00</published><updated>2010-12-16T13:41:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2010-12-16:/posts/2010-12-maybe-a-bit-more-about-my-inner-geek.html</id><summary type="html">&lt;p&gt;So I’m guessing a few of you already have seen my entry to iiNet’s TopGeek competition. There’s a bit more it to the brief bio I put on the website.&lt;/p&gt;</summary><content type="html">&lt;p&gt;So I’m guessing a few of you already have seen my entry to &lt;a href="http://bit.ly/spyng33k"&gt;iiNet’s
+TopGeek competition&lt;/a&gt;. There’s a bit more it to the brief bio I put on
+the website.&lt;/p&gt;
+&lt;p&gt;I guess it all started when I was young, around the age of four, my
+parents were given a Commodore 64 by my Uncle - it came with a Tape deck
+and a cartridge game called &lt;a href="http://www.lemon64.com/games/details.php?ID=2677&amp;amp;coverID=1634"&gt;Tooth Invaders&lt;/a&gt;. Interesting game, you
+were given a set of teeth to look after and you had to fight germs off
+the teeth with a toothbrush. Occasionally flossing between the teeth and
+you had to avoid a little green dude who would kick your ass if he
+touched you. A couple of years passed and there were a couple of people
+at school who also had a Commodore 64, we would borrow games and play
+them. My Dad came back from Canada after visiting his father with a box
+full with games, one that I got really addicted to was &lt;a href="http://en.wikipedia.org/wiki/Maniac_Mansion"&gt;Maniac
+Mansion&lt;/a&gt;. Would have to say one of my most favorite games in the
+entire fucking world. You could choose 2 out of 6 players (you get stuck
+with Dave, the most useless guy ever) each of the alternative 6 players
+had different skills and abilities, which also meant you could complete
+the game in many different ways. This formed my love for click adventure
+games. Along with Maniac Mansion, was &lt;a href="http://www.thehouseofgames.net/index.php?t=10&amp;amp;id=408"&gt;Labyrinth&lt;/a&gt;- I guess a pre-scumm
+game, but it was very interactive and fun, also based on the movie. I
+guess this is where my love for gaming came from. Also playing Granny’s
+Garden on the BBC’s in primary school. That game scared the hell outta
+me, maybe it was her big pixel nose that bothered me. I don’t really
+remember.&lt;/p&gt;
+&lt;p&gt;Later in life, I got access to a PC, 486 I think from memory. After
+school I used to create games in ZZT. As well as rollerskating. That was
+all the rage back then. Pretty sure I made a ZZT game about Rolloways.
+But anyway, I became more interested in other aspects of computing, such
+as hacking. I remember sitting in the computer labs at school, we only
+had 486s - oh man we played STUNTS on them while the teachers were out,
+it was the fucking bomb! Pretty sure I managed to install a virus on one
+of the machines, &lt;a href="http://en.wikipedia.org/wiki/Ping-Pong_virus"&gt;Ping-pong&lt;/a&gt; and the teacher freaked out. Our school
+wasn’t exactly computer literate.&lt;/p&gt;
+&lt;p&gt;I remember when we first got the internet at home. It was a dial-up
+shell account on Multiline. First browser I ever used? Lynx. When I was
+14, I remember printing out pages and pages of things to read, actually
+from the Triple J website (lets see if we can use the wayback machine on
+it.. &lt;a href="http://web.archive.org/web/*/http://www.triplej.net.au"&gt;oh yeah..&lt;/a&gt; not that far though. All my friends were confused and
+didn’t quite understand the use for it, I loved it!&lt;/p&gt;
+&lt;p&gt;Later, in year 11 I discovered something called IRC.. ended up getting a
+bit too addicted to that and spent most my time online chatting to
+people, writing scripts in mIRC and making new friends on AU's Undernet
+server.. which ended up splitting off to oz.org because of so many
+netsplits. I lurked in channel #Perth and #Perth-16-20 (lol) most. Too
+much time online ended my studies at high school pretty early in year
+11. I started hanging around with an older crowd, students at UWA and
+some other people. This is where I got introduced into lasertag, by a
+guy called RoaDKiLL. Every Monday night we would rock up to Zone 3
+Northbridge for a weekly competition. Back then they were using the old
+V4 model P&amp;amp;C packs, which, are still the greatest zone packs on earth.
+Why? THE TIMING IS SO DAMN PRECISE (the newer infusion packs, the ones
+they have now at Darkzone, are not as responsive - because of the radio
+that enables the live scoring, it needs to talk back and forth to the
+server).&lt;/p&gt;
+&lt;p&gt;I became slack during this time, not doing much with my life. I was
+being very social online and not so much outside, except for the
+occasional rollerskating on Friday nights. Yes - I love skating, as you
+might have already guessed. The rush of skating fast and dodging people
+is amazing. Back then I remember playing mutiplayer Heretic with one of
+my UWA mates, over a 9600bps modem, it was fantastic. Also back then I
+was getting into the Lucasarts click adventure games, Monkey Island - my
+most favorite game in the universe. As I wasn't doing much, my step mum
+got on my case, ended up getting me an apprenticeship at the company
+which she had recently purchased, Comfix. Back then there were no real
+IT courses so the apprenticeship I had to do was called Electronic
+Servicing. At Comfix I was repairing Commodore 64s, Commodore Amigas,
+Lynx Gamegears, PCs and other really old machines. I learnt so much from
+that place, which inspired my love for gadgets :~)&lt;/p&gt;
+&lt;p&gt;Later on, I found myself out of work then decided to look more into
+programming. Found myself working on a business application written in
+Win32-C. Yet was later replaced with a perl script. I begin hanging out
+with a couple of my mates, one of them was doing studying computer
+science at Murdoch -- another just chilling out. We used to play
+Starcraft every night, for weeks on end. I felt like I was doing
+nothing, I thought I might head back to what I know, IT support and to
+attend university at the same time.&lt;/p&gt;
+&lt;p&gt;Later, one of my mates asked me if I was interested in working in a web
+development role. I enthusiastically said OH HELL YEAH and went to work
+for them. That's when I was first introduced into PHP and ASP
+programming. I became more and more interested in what I could do with
+web related services and databases. This was maybe one of my major
+turning points down to what I am currently doing today, working as a
+Programmer at a local ISP.&lt;/p&gt;
+&lt;p&gt;Gaming wise, I’ve just started to get into Lord of the Rings Online.
+It’s free so I thought I might give it a chance, so far it’s okay – I’m
+playing it with my fiancée, who is the most awesome and beautiful person
+in the entire whole world – but I’ll post more about her later ;\~).
+Infact we recently just moved out together. I used play World of
+Warcraft quite a bit. I had a Warlock, Paladin, Druid and some other
+characters all up to 80. Once I hit 80 I wasn’t quite sure what to do,
+because I simply can’t stand raiding. It’s boring, repetitive and a
+major timesink. I did, however, enjoy world PVP, griefing is fun! – So I
+learnt from playing hours and hours of EVE Online with a certain
+corporation called GoonFleet. Industrial espionage in a MMORPG? oh hell
+yeah. We had a spymaster, &lt;a href="http://www.tentonhammer.com/node/68172"&gt;here is an article&lt;/a&gt; on his work in the
+game. I was one of the guys that stepped up and snuck an alt player into
+one of our rival corporations, Lokta Veritas. It was bit of a fun
+experience, trying to act undercover. I setup a PHP script on my server
+at home that posted everything that happened into LV’s corporation/gang
+chat window, so the spymaster could process the information and relay it
+on to the people who needed the information. GoonFleet was a lot of fun,
+just being a general jerk in EVE Online surrounded by others who took it
+so so seriously.&lt;/p&gt;
+&lt;p&gt;I enjoy making my life easier around the house, and smashing up scripts
+in PERL, BASH and PHP. I wouldn't go to the extent of creating an IP
+controlled toaster, but I would go to the effort of setting up a TV box
+with XBMC - with notifications being pushed to it. Or gathering usage
+from various items around the house. I love data. DATA DATA DATA DATA,
+but not the Brent Spiner kinda data. He was always an awkward android.&lt;/p&gt;
+&lt;p&gt;I'm pretty big into scifi's and that kinda pop-culture thing. I watched
+the entire Next Generation series while sitting at my desk at my old
+job, while smashing out code for the website we were working on. My
+favorite store would have to be Minotaur in Melbourne. That place is god
+damn amazing.&lt;/p&gt;
+&lt;p&gt;I have a secret love for typography. mmmMmm typography.
+hell-vetica-yeah.&lt;/p&gt;
+&lt;p&gt;Not to mention, I'm also a bit of a music geek. If I've heard the band
+before I can usually guess who they are, not to mention being able to
+spot known tunes within at least 15 second of the song actually playing.
+I love music.&lt;/p&gt;
+&lt;p&gt;Puns? I love puns. Puns are amazing.&lt;/p&gt;
+&lt;p&gt;I'm looking at doing some development work on the HTC Desire HD -
+android based phone. I have a few ideas and I'm going to see what I can
+come up with. Of course I'll post what I make on my blog. (This thing,
+right here, you're on it now)&lt;/p&gt;
+&lt;p&gt;So far I've posted on Twitter and Facebook, asking my mates to share my
+iiNet's TopGeek vote url. As of yesterday I launched a banner campaign
+on SomethingAwful as well as linking my URL on Delicious and Reddit.&lt;/p&gt;
+&lt;p&gt;Vote for me please, I really want to beat Simon Hackett.&lt;/p&gt;</content></entry><entry><title>I got my wheels back</title><link href="http://mattie.id.au/posts/2010-05-i-got-my-wheels-back.html" rel="alternate"></link><published>2010-05-19T23:57:00+08:00</published><updated>2010-05-19T23:57:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2010-05-19:/posts/2010-05-i-got-my-wheels-back.html</id><summary type="html">&lt;p&gt;Tonight I decided to hit the Rollerdrome for my now usual fortnightly skate. I sat down tied my skates up then hit the rink.&lt;/p&gt;</summary><content type="html">&lt;p&gt;[flickr pid=“4621403349” size=“medium”]&lt;/p&gt;
+&lt;p&gt;Tonight I decided to hit the Rollerdrome for my now usual fortnightly
+skate. I sat down tied my skates up then hit the rink. The first thing I
+do when I get on the rink is to check the grip and holy shit – my wheels
+did not stick to the ground. This is quite awesome because it meant one
+thing. The last times I’ve been skating I haven’t been able to
+powerslide properly; powersliding is where you put all your weight on
+your wheels going the opposite side to where you were skating, it also
+makes loud noises and sometimes sparks (if you’re lucky).&lt;/p&gt;
+&lt;p&gt;This was so great. It meant that I had pretty much the best control I
+could have. Reminded me of back when I used to skate at Rolloways as a
+teenager being able to do freaky skate shit, like diving in between
+clumps of people who are slowly skating around. Catching that half a
+second window you get between people and sneaking up to someone and
+letting a massive sounding powerslide go.&lt;/p&gt;
+&lt;p&gt;I’ve been skating for a pretty long time, ever since I was 13. I took it
+up because I really slow at running and I needed something to do in my
+spare time; skating seemed pretty good. Started with the learn to skate
+program, did all the star classes and ended up pretty decent at skating.
+(I will not mention that it was a figure skating class either… then
+again I was one of the few people that figure skated in speed skates)&lt;/p&gt;
+&lt;p&gt;It’s just so exciting feeling the air rush through you, knowing you are
+in complete control and you can recover from any slight slip-up with mad
+balance control.&lt;/p&gt;
+&lt;p&gt;[flickr pid=“4611494482” size=“medium”]&lt;/p&gt;
+&lt;p&gt;I’ve been going road skating a fair bit. My recent and longest skate
+going at a constant speed (mostly because there was NO ONE at all on the
+foot/bike paths) was the following &lt;a href="http://www.runkeeper.com"&gt;RunKeeper&lt;/a&gt; entry:
+&lt;a href="http://rnkpr.com/a5rhfd%20"&gt;&lt;a href="http://rnkpr.com/a5rhfd"&gt;http://rnkpr.com/a5rhfd&lt;/a&gt;&lt;/a&gt;. Of course, this skate might of effected
+my wheels as I was using rinky wheels instead of road wheels. My axels
+are fucked okay.&lt;/p&gt;
+&lt;p&gt;Looking forward to some more skating. Considering being a &lt;a href="http://wftda.com/officiating"&gt;referee&lt;/a&gt;
+for the &lt;a href="http://www.perthrollerderby.com.au/"&gt;upcoming roller derby&lt;/a&gt; games. I think learning a massive
+rulebook to see girls beat and trip each other up would be well worth
+it. ;)&lt;/p&gt;
+&lt;p&gt;And that, is how I roll.&lt;/p&gt;</content><category term="rollerdrome"></category><category term="skates"></category><category term="Skating"></category></entry><entry><title>Zone Warriors updates</title><link href="http://mattie.id.au/posts/2010-02-zone-warriors-updates.html" rel="alternate"></link><published>2010-02-22T10:27:00+08:00</published><updated>2010-02-22T10:27:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2010-02-22:/posts/2010-02-zone-warriors-updates.html</id><summary type="html">&lt;p&gt;Secret Darkzone stats&lt;/p&gt;</summary><content type="html">&lt;p&gt;As a few of you already know, I’ve been slowly working on a secret zone
+stats projects. It’ll be hosted on &lt;a href="http://zone-girls.com"&gt;zone-girls.com&lt;/a&gt; until I can afford
+a new domain name and hosting.&lt;/p&gt;
+&lt;p&gt;The data will be collected by Torn XML files and it will also be
+manually entered if data is pre-Torn. You will be able to select a
+tournament, or a competition. The interface will show a table of the
+teams (leader board style) where the user can click on a team for a
+certain to break down into the team’s scores over the season, bested
+colour as well as other stats. Then it’ll have links to the players on
+the team then bring up stats for that player, in that certain
+tournament. It will also link to the players “global” profile, listing
+their achievements, teams and competitions participated in. Highest rank
+in x. MVP count. Number of trophies. That kinda junk.&lt;/p&gt;
+&lt;p&gt;The post production name is not set in stone, so I’m using Zone Warriors
+as the name.&lt;/p&gt;
+&lt;p&gt;There will be pretty graphs, no doubt about that. Also an achievement
+system where I am happy for suggestions. Leave a comment here or a
+message on the &lt;a href="http://darkzone-wa.com/forums"&gt;Darkzone WA forums&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;In no particular order -&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Parse Torn files generated by &lt;a href="http://www.dougburbidge.com/"&gt;Doug’s&lt;/a&gt; &lt;a href="http://www.dougburbidge.com/Apps/index.html"&gt;Torn software&lt;/a&gt;
+    (21/02/10)&lt;/li&gt;
+&lt;li&gt;Parse different formats and/or support for manual data (for comps
+    pre-torn)&lt;/li&gt;
+&lt;li&gt;Usable admin / interface&lt;/li&gt;
+&lt;li&gt;Add a site (21/02/10)&lt;/li&gt;
+&lt;li&gt;Add a tournament (21/02/10)&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Queries!&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Team ladder&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;Solo ladder&lt;/li&gt;
+&lt;li&gt;Team tournament profile (21/02/10)&lt;/li&gt;
+&lt;li&gt;Player tournament profile&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Player overall profile&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Site review and related media (a profile for the site!)&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;Button hookups (ID to Profile)&lt;/li&gt;
+&lt;li&gt;Graphs (Via &lt;a href="http://www.aditus.nu/jpgraph/"&gt;JPGraph&lt;/a&gt;and/or &lt;a href="http://www.maani.us/xml_charts/index.php"&gt;XML/SMF Charts&lt;/a&gt;) NO USE THIS!!
+    &lt;a href="http://code.google.com/apis/visualization/documentation/gallery.html"&gt;Google Vis&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Achievement system (would appreciate ideas)&lt;/li&gt;
+&lt;li&gt;Commenting ability&lt;/li&gt;
+&lt;li&gt;Hook up with the SMF authentication to use as a primary source of
+    authentication for the website&lt;/li&gt;
+&lt;li&gt;Make the whole webpage look pretty&lt;/li&gt;
+&lt;li&gt;Online fixtures&lt;/li&gt;
+&lt;li&gt;Online fixture generator following &lt;a href="http://www.dougburbidge.com/Tournament/index.html"&gt;Doug’s 3-team grids&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Caching of finished events&lt;/li&gt;
+&lt;li&gt;Events! Notification via email/IM and reminders. Ability to comment
+    and rate past tournaments! RSS/iCal compliant&lt;/li&gt;
+&lt;li&gt;Podcast support (lol)&lt;/li&gt;
+&lt;li&gt;Who is currently at zone? via 4sq&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If you can think of anything else that I could put on it, please let me
+know!&lt;/p&gt;</content><category term="darkzone"></category><category term="code"></category><category term="stats"></category></entry><entry><title>Reactivated some EVE Online</title><link href="http://mattie.id.au/posts/2010-01-reactivated-some-eve-online.html" rel="alternate"></link><published>2010-01-29T10:53:00+08:00</published><updated>2010-01-29T10:53:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2010-01-29:/posts/2010-01-reactivated-some-eve-online.html</id><summary type="html">&lt;p&gt;Bad post abotu EVE Online&lt;/p&gt;</summary><content type="html">&lt;p&gt;Yeah, thanks reaps for tweeting about the last couple of days, also CCP
+for sending me emails to activate my account 5 DAYS FREE $9.99 WOOOOO.
+Both of my accounts have been activated again.&lt;/p&gt;</content><category term="idiot"></category><category term="eve online"></category><category term="dumb idea"></category></entry><entry><title>So, we got World of Warcraft MMO gaming mice</title><link href="http://mattie.id.au/posts/2009-10-so-we-got-world-of-warcraft-mmo-gaming-mice.html" rel="alternate"></link><published>2009-10-02T11:23:00+08:00</published><updated>2009-10-02T11:23:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2009-10-02:/posts/2009-10-so-we-got-world-of-warcraft-mmo-gaming-mice.html</id><summary type="html">&lt;p&gt;Sera decided to purchase a couple of these World of Warcraft MMO gaming mice&lt;/p&gt;</summary><content type="html">&lt;p&gt;Sera decided to purchase a couple of these &lt;a href="http://www.steelseries.com/_int/products/partners/"&gt;World of Warcraft MMO gaming
+mice&lt;/a&gt; for my birthday. They look pretty great, having 15 buttons, cool
+glowing OLED that pulsates. It takes a while to get used to the handling
+and the design since it’s a bit different to normal, more ergonomic
+mice. But apart from that, so far, the hardware acts really well. The
+buttons are well placed and it’s very good.&lt;/p&gt;
+&lt;p&gt;One slight problem. The software that comes with is absolute crap. &lt;a href="http://www.fragyou.net/2009/09/24/wow-mmo-gaming-mouse-ap-mfc-error/"&gt;It’s
+very poorly written.&lt;/a&gt; It can’t even handle malformed XML and will just
+crash. Error handling? Jesus christ learn how to. I tried to simply
+import a profile via the armory and I get an AP MFC error. Why? because
+the image location has changed or something. How hard would of it been
+to, say if there was an error. 1) Display there was an error getting the
+image 2) Replace it with a stock image. Oh, the images? they’re STOCK
+IMAGES AND DO NOT REALLY CHANGE. You could of distributed them with the
+package.&lt;/p&gt;
+&lt;p&gt;The only problems I have had though, are to do with profile handling.&lt;/p&gt;
+&lt;p&gt;The other options in the software are okay, such as setting up key
+bindings, macros and junk like that. I’ve recently bought my mouse into
+work and bound cut, paste, hide desktop, tab forward, tab backward,
+build, build project and it works pretty well.&lt;/p&gt;</content></entry><entry><title>100 Commodore 64 games in 10 minutes</title><link href="http://mattie.id.au/posts/2009-09-100-commodore-64-games-in-10-minutes-well-i-got-85100.html" rel="alternate"></link><published>2009-09-17T14:57:00+08:00</published><updated>2009-09-17T14:57:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2009-09-17:/posts/2009-09-100-commodore-64-games-in-10-minutes-well-i-got-85100.html</id><summary type="html">&lt;p&gt;Here is my guess list from the above video. 85/100. The list is a bit messy because I was frantically writing them down. xD&lt;/p&gt;</summary><content type="html">&lt;p&gt;http://www.youtube.com/watch?v=eY2gK1MPgh8&lt;/p&gt;
+&lt;p&gt;Here is my guess list from the above video. 85/100. The list is a bit
+messy because I was frantically writing them down. xD The music is also
+pretty fucking awesome.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt; Last Ninja 2
+ IK+
+ Maniac Mansion
+ Pirates
+ Zak McKraken and the Alien mind bender
+ Vendetta
+ Turrican 1
+ Arhcon
+ Bubble Bobble
+ Summer Games
+ ???
+ Bruce Lee
+ Last Ninja 1
+ ???
+ Turrican 2
+ ???
+ Defender of the Crown
+ Asterix
+ International Soccer
+ bootcamp
+ Kick Off
+ Nick Faldof golf
+ Hyper games
+ Winter games
+ Creatures 2
+ Impossible Mission
+ Usagi ojuimbo
+ gianna sisters
+ ????
+ Californa games
+ Boulder dash
+ ???
+ Wizard of Wor
+ ??
+ ??
+ Mayhem in MOnsterland
+ Stunt racers
+ H E R O
+ Pitstop 2
+ Skate or Die
+ Space Taxi
+ Pub Games
+ Batman Capered crusader
+ Donald Ducks Playground
+ Rainbow Islands
+ Green BEret
+ Tusker
+ Shadow of the beast
+ International Karate 2
+ Midnight Resistance
+ Paradoid
+ Gauntlet
+ Salamander?
+ Blue Max
+ Duckular
+ ???
+ ???
+ Wizball
+ Dunebuggy
+ Who dares win
+ lode runner
+ spy vs spy
+ devilance
+ circus games?
+ jumpman
+ zynaps
+ kung fu master
+ crystal castle?
+ powerdrift
+ rick dangerous
+ pipe dreams 3?
+ barbarian
+ frankie goes to hollywood
+ ghost n goblins
+ lazy jones
+ way of the exploding fist
+ raid over bungling bay
+ decathalon
+ manic miner
+ gremlins 2
+ nebulus
+ ???
+ ???
+ spyhunter
+ turbo outrun
+ aztec quest
+ goonies
+ batty
+ preditor(?)
+ ghostbusters
+ ???
+ forbiden forrest
+ ???
+ ??
+ commando
+ bc&amp;#39;s quest for tyres
+ ???
+ kickstart
+ arkanoid 2?
+ flumbo&amp;#39;s quest
+&lt;/pre&gt;&lt;/div&gt;</content><category term="c64"></category><category term="gaming"></category><category term="commodore"></category></entry><entry><title>Combined graph in ASP.NET with OWC</title><link href="http://mattie.id.au/posts/2009-09-combined-graph-in-asp-net-with-owc.html" rel="alternate"></link><published>2009-09-14T11:49:00+08:00</published><updated>2009-09-14T11:49:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2009-09-14:/posts/2009-09-combined-graph-in-asp-net-with-owc.html</id><summary type="html">&lt;p&gt;It took me a while to find out how to get a hang of making graphs in ASP.NET combined with OWC&lt;/p&gt;</summary><content type="html">&lt;p&gt;It took me a while to find out how to get a hang of making graphs in
+ASP.NET combined with OWC. There aren't many places on the internet that
+show, or have a good guide. I was having troubles with creating a
+combined OWC graph in ASP.NET and I finally worked it out. I thought I
+would share. I've left some of the different methods and properties in
+there, mostly the styling ones to give a better idea on how to style
+your graph to suit you. The DataTable bit is in there also. If you want
+to test it straight out you can replace that with an array of your
+choosing. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;    &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;XAxis&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;YAxis&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;DataTable&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DataSource&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;ChAxis&lt;/span&gt; &lt;span class="n"&gt;axis&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;ChAxis&lt;/span&gt; &lt;span class="n"&gt;axis2&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;ChSeries&lt;/span&gt; &lt;span class="n"&gt;seriesValue&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;ChSeries&lt;/span&gt; &lt;span class="n"&gt;seriesMoreValue&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;ChSeries&lt;/span&gt; &lt;span class="n"&gt;seriesY2&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;null&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;ChartSpace&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;this&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;GetBaseChartSpace&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="n"&gt;ChChart&lt;/span&gt; &lt;span class="n"&gt;chart&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ChartSpace&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Charts&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#region Grab the data from the database and put it in a couple of arrays&lt;/span&gt;
+
+    &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;listValues&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;();&lt;/span&gt;
+    &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;listMoreValues&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;dateList&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;();&lt;/span&gt;
+    &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;listY2Values&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;List&lt;/span&gt;&lt;span class="p"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;object&lt;/span&gt;&lt;span class="p"&gt;&amp;gt;();&lt;/span&gt;
+
+    &lt;span class="k"&gt;foreach&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;DataRow&lt;/span&gt; &lt;span class="n"&gt;row&lt;/span&gt; &lt;span class="k"&gt;in&lt;/span&gt; &lt;span class="n"&gt;dt&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Rows&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;dateList&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Date&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+        &lt;span class="n"&gt;listValues&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Value1&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+        &lt;span class="n"&gt;listMoreValues&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;Value2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+        &lt;span class="n"&gt;listY2Values&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;row&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s"&gt;&amp;quot;ValueY2&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="kt"&gt;object&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;dateArray&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;dateList&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToArray&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="kt"&gt;object&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;valueArray&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;listValues&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToArray&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="kt"&gt;object&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;moreValueArray&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;listMoreValues&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToArray&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+    &lt;span class="kt"&gt;object&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt; &lt;span class="n"&gt;y2Array&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;listY2Values&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToArray&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#endregion&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#region Series data&lt;/span&gt;
+    &lt;span class="n"&gt;seriesValue&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SeriesCollection&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Value Array&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;seriesValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SetData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;ChartDimensionsEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDimCategories&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;Convert&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ChartSpecialDataSourcesEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDataLiteral&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;dateArray&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SetData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;ChartDimensionsEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDimValues&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;Convert&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ChartSpecialDataSourcesEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDataLiteral&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;valueArray&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Interior&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#FF9E00&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;seriesMoreValue&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SeriesCollection&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesMoreValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;More Value Array&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;seriesMoreValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SetData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;ChartDimensionsEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDimValues&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;Convert&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ChartSpecialDataSourcesEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDataLiteral&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+    &lt;span class="n"&gt;moreValueArray&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesMoreValue&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Interior&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#F7D708&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="cp"&gt;#endregion&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#region Chart settings&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Type&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ChartChartTypeEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chChartTypeColumnClustered&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Interior&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;whitesmoke&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;PlotArea&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Interior&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;white&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Title&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;The chart header&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;HasLegend&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Legend&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Position&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ChartLegendPositionEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chLegendPositionBottom&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="cp"&gt;#endregion&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#region value axis (Y Axis)&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;Scaling&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Minimum&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasTitle&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;Title&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;This is the Y-axis&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasMajorGridlines&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasMinorGridlines&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;MajorGridlines&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Line&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;lightgrey&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;MinorGridlines&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Line&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#EEEEEE&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;YAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasTickLabels&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="cp"&gt;#endregion&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#region date axis (X Axis)&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;XAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasMajorGridlines&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;XAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;MajorGridlines&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Line&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;lightgrey&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;XAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasMinorGridlines&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;XAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;HasTitle&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;XAxis&lt;/span&gt;&lt;span class="p"&gt;].&lt;/span&gt;&lt;span class="n"&gt;Title&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Date&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="cp"&gt;#endregion&lt;/span&gt;
+
+    &lt;span class="cp"&gt;#region value axis (Y2 Axis)&lt;/span&gt;
+    &lt;span class="n"&gt;seriesY2&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SeriesCollection&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesY2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Type&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ChartChartTypeEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chChartTypeLine&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;seriesY2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;SetData&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;ChartDimensionsEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDimValues&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;Convert&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ToInt32&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ChartSpecialDataSourcesEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDataLiteral&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;y2Array&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;seriesY2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;This is the Y2-axis&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;seriesY2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Line&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Color&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;#CE0000&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;seriesY2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Ungroup&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="n"&gt;axis2&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt;
+    &lt;span class="n"&gt;chart&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Axes&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Add&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;seriesY2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="k"&gt;get&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;_Scalings&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ChartDimensionsEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chDimValues&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+    &lt;span class="n"&gt;axis2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Scaling&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Minimum&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;axis2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;HasMajorGridlines&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;axis2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Position&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ChartAxisPositionEnum&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;chAxisPositionRight&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;axis2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;HasTitle&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="k"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;axis2&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Title&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Caption&lt;/span&gt; &lt;span class="p"&gt;=&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Y2 caption&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="cp"&gt;#endregion&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;See https://gist.github.com/spyn/83aebdb9b8ffb8e6a682&lt;/p&gt;
+&lt;p&gt;Some related links: MSDN Office Web Components Constants &lt;a href="http://msdn.microsoft.com/en-us/library/aa204179%28office.11%29.aspx"&gt;http://msdn.microsoft.com/en-us/library/aa204179%28office.11%29.aspx&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;There are probarly some other, better, controls out there.&lt;/p&gt;</content><category term=".NET"></category><category term="asp.net"></category><category term="Code"></category><category term="graph"></category><category term="OWC"></category><category term="web development"></category></entry><entry><title>Jocelyn's Horroscope</title><link href="http://mattie.id.au/posts/2007-05-joce-horroscope.html" rel="alternate"></link><published>2007-05-11T13:29:00+08:00</published><updated>2007-05-11T13:29:00+08:00</updated><author><name>mattie</name></author><id>tag:mattie.id.au,2007-05-11:/posts/2007-05-joce-horroscope.html</id><summary type="html">&lt;p&gt;Jocelyn's horroscope&lt;/p&gt;</summary><content type="html">&lt;p&gt;Introduction
+This report is a short edition of the AstroText Youth. It is meant as a sample and advertisement for the full version of the AstroText Youth which can be ordered from Astrodienst as a downloadable E-Horoscope of about 20 - 30 pages.&lt;/p&gt;
+&lt;p&gt;In the short edition, only a few, but nevertheless important aspects of your natal chart are considered.
+The report was generated with the following birth data: female, born on March 2007 in Perth, Australia.&lt;/p&gt;
+&lt;p&gt;Your sun sign is Pisces. This is the sign in which the Sun is in your birth chart. Your Ascendant, the rising sign, is in Leo, and your Moon is in Sagittarius.&lt;/p&gt;
+&lt;p&gt;Leo Rising
+You like to be the center of attention, to appear strong, confident and dominant, even if something is bothering you.
+You like to be the leader, and you can be a good one as long as you remember that leadership is a responsibility as well as power and privilege.
+You can be stubborn, especially if your pride is involved. You are idealistic, and people have to prove to you that they have integrity.
+You like to have rich and elegant things that you can show off to others. But remember that just because something impresses people, it is not necessarily good. You need to learn the difference.
+Others may or may not see you as beautiful or handsome, but as you grow up you will develop a regal bearing that will make others feel that you are dependable. Many people will like you, and most will also respect you.&lt;/p&gt;
+&lt;p&gt;Sun in Pisces
+You are a very sensitive and emotional person who quickly picks up moods and emotions from other people and makes them part of your own. This trait makes it very easy for others to hurt your feelings. Because you have the ability to put yourself in someone else's place, you have an exceptional understanding of other people's needs. Whenever possible, you try to help others, because it makes you feel good about yourself.
+Very often you like to go into your own private fantasy world and think about ideas that mean something only to you. Just don't spend so much time there that you lose track of what is happening outside in the real world.
+You may be somewhat shy, because you feel you have to trust people before you can really open up to them. But even though you are shy, you do need other people, for without them you feel lonely, even in your own private world.&lt;/p&gt;
+&lt;p&gt;Sun in the Seventh House
+You are at your best with another person, either working or just having a good time. You are able to adjust your own needs to someone else's so that together you make a pair that works better than either of you would separately.
+You are very social, and you have learned early in life to get along with others. For this reason, you are able to help others patch up an argument, because you see both sides of the controversy.
+Some people express another side of the seventh-house Sun. You may really feel like arguing and fighting with others, instead of trying to get along. Don't make a habit of it, because everyone gets tired of fighting eventually.
+You should learn to be more independent. Also avoid making compromises that require you to give up something essential just to keep a friend.&lt;/p&gt;
+&lt;p&gt;Moon in Sagittarius
+You are an idealist who wants the world to be grand and good and beautiful. You want people to be good and noble and are very disappointed when they are not.
+You are so concerned with the important things in life that sometimes you forget about little matters that really have to be done. You are very independent and resent anyone who tries to keep you from doing what you want.
+You are optimistic and cheerful, and you can't stay sad for very long. Usually you feel good about life, and you try to make others around you feel that way also. People will like you for this.
+When you are an adult, you will be interested in any subject that teaches you more about the universe and your place in it.&lt;/p&gt;
+&lt;p&gt;Moon in the Fourth House
+To be at your best, you need to have a peaceful home life, for this means emotional security to you. When you feel strong and secure, you are very kind and sensitive to other people's feelings. But if you feel depressed or insecure, you tend to withdraw into your own private world.
+Your mother is very important to you, and you need to be close to her.
+You are interested in the past, and you may become an eager student of history, especially the history of your own family origins and background.&lt;/p&gt;
+&lt;p&gt;Venus in Aries
+You are very affectionate toward others, but you hate to be tied down by anyone. Not shy or reserved, you express your loving feelings freely, and you need to be free to love whomever you choose. You are unwilling to give in to your partner, because you always want things your own way. This could be a problem in your friendships. However, now is the time when you can learn how to give and how to make compromises with friends, relatives and other people.
+People usually like you because you are yourself, not because you are charming. You know what you want, and you are willing to go after it.&lt;/p&gt;
+&lt;p&gt;Venus in the Eighth House
+You enjoy your senses, and you want to experience the world as vividly and totally as possible. You seem to be looking for a hidden dimension of the world that will transform your life completely. Often you will seek this dimension through relationships with others, which will be very intense and full of feeling.
+Be careful not to be too possessive of your friends. Also, you shouldn't choose your friends according to the advantages you will gain from their friendship.
+While you are young, you should begin to take care of your health by not eating or drinking too much and by getting plenty of physical exercise.&lt;/p&gt;
+&lt;p&gt;Mars in Aquarius
+Rather than working according to established patterns, you want to find your own way, which you hope will be better. As a result you are quite inventive and original
+As you get older you will be concerned with the greater good of society. You are quite capable of directing your efforts to goals that will not benefit you personally but will benefit others. Even while you are young, you resent authority.
+If you are convinced of the importance of a cause, you work better with a group than you do alone.&lt;/p&gt;
+&lt;p&gt;Mars in the Sixth House
+You enjoy hard work, as long as you can control the way you do it. You are quite disciplined in your own work habits, but you don't like to work with people who are less disciplined. But if you respect those who have authority over you, if they have demonstrated that they do know more than you and can teach you something, you will be an excellent employee. However, when you are older, your work drive will be expressed most smoothly if you are self-employed.
+When working with others, especially if you are the leader, try not to be too critical. With this placement, it is very important that you learn to express your honest feelings of anger.&lt;/p&gt;</content></entry></feed>
