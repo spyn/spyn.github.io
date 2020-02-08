@@ -6,19 +6,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="Having some spare time, I thought I would see if it is possible to setup boblightd with SteamOS. It looks like it&#39;s possible, with X11 at least. https://code.google.com/p/boblight/wiki/Compiling...">
         <meta name="keywords" content="ambilight, boblight, gaming, lightpack, linux, steamos">
-        <link rel="icon" href="../favicon.gif">
+        <link rel="icon" href="https://spyn.me/favicon.gif">
 
-        <title>boblightd and SteamOS - _mattie_id_au</title>
+        <title>boblightd and SteamOS - _spyn_me_right_round</title>
 
         <!-- Stylesheets -->
-        <link href="../theme/css/bootstrap.min.css" rel="stylesheet">
-        <link href="../theme/css/fonts.css" rel="stylesheet">
-        <link href="../theme/css/nest.css" rel="stylesheet">
-        <link href="../theme/css/pygment.css" rel="stylesheet">
+        <link href="https://spyn.me/theme/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://spyn.me/theme/css/fonts.css" rel="stylesheet">
+        <link href="https://spyn.me/theme/css/nest.css" rel="stylesheet">
+        <link href="https://spyn.me/theme/css/pygment.css" rel="stylesheet">
 
         <!-- /Stylesheets -->
 
         <!-- RSS Feeds -->
+        <link href="https://spyn.me/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="_spyn_me_right_round Full Atom Feed" />
         <!-- /RSS Feeds -->
 
         <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -40,7 +41,6 @@
         <!-- /Google Analytics -->
         <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
         <script async src="/js/mattie.js"></script>
-		<script src="https://www-uat.ractest.com.au/bundle/beacon"></script>
 
 
     </head>
@@ -49,20 +49,20 @@
 
         <!-- Header -->
     <div class="header-container video-background">
-      <video src="../images/lightpack.webm" muted loop autoplay></video>
+      <video src="https://spyn.me/images/lightpack.webm" muted loop autoplay></video>
     </div>
 
             <!-- Static navbar -->
             <div class="container">
                 <div class="header-nav">
                     <div class="header-logo">
-                        <a class="pull-left" href="../"><img class="mr20" src="../images/logo.gif" alt="logo">_mattie_id_au</a>
+                        <a class="pull-left" href="https://spyn.me/"><img class="mr20" src="https://spyn.me/images/logo.gif" alt="logo">_spyn_me_right_round</a>
                     </div>
                     <div class="nav pull-right">
-                            <a href="../categories">Categories</a>
-                            <a href="../tags">Tags</a>
-                            <a href="../timeline">Career</a>
-                            <a href="../lifestream">Activity</a>
+                            <a href="https://spyn.me/categories">Categories</a>
+                            <a href="https://spyn.me/tags">Tags</a>
+                            <a href="https://spyn.me/timeline">Career</a>
+                            <a href="https://spyn.me/lifestream">Activity</a>
                     </div>
                 </div>
             </div>
@@ -75,12 +75,12 @@
               <div class="col-lg-12">
                   <div class="header-content">
                       <h1 class="header-title">boblightd and SteamOS</h1>
-                      <p class="header-date">By <a href="../author/mattie.html">mattie</a>, Sat 01 November 2014, in category <a href="../category/gaming.html">Gaming</a></p>
+                      <p class="header-date">By <a href="https://spyn.me/author/mattie.html">mattie</a>, Sat 01 November 2014, in category <a href="https://spyn.me/category/gaming.html">Gaming</a></p>
                       <div class="header-underline"></div>
                       <div class="clearfix"></div>
                       <p class="pull-right header-tags">
                           <span class="glyphicon glyphicon-tags mr5" aria-hidden="true"></span>
-<a href="../tag/ambilight.html">ambilight</a>, <a href="../tag/boblight.html">boblight</a>, <a href="../tag/gaming.html">gaming</a>, <a href="../tag/lightpack.html">lightpack</a>, <a href="../tag/linux.html">linux</a>, <a href="../tag/steamos.html">steamos</a>                      </p>
+<a href="https://spyn.me/tag/ambilight.html">ambilight</a>, <a href="https://spyn.me/tag/boblight.html">boblight</a>, <a href="https://spyn.me/tag/gaming.html">gaming</a>, <a href="https://spyn.me/tag/lightpack.html">lightpack</a>, <a href="https://spyn.me/tag/linux.html">linux</a>, <a href="https://spyn.me/tag/steamos.html">steamos</a>                      </p>
                   </div>
               </div>
         </div>
@@ -101,24 +101,24 @@
 <p>It doesn't look like the libraries that are required, so I'm going to have to add some apt repos
 http://steamcommunity.com/groups/steamuniverse/discussions/1/648816742742587380/</p>
 <p>Also, openssh-server, because I'm lazy and don't want to do it via the keyboard.</p>
-<div class="highlight"><pre><span></span>sudo apt-get install libx11-dev libgl1-mesa-dev libxrender-dev libxext-dev portaudio19-dev libavcodec-dev libavformat-dev libavdevice-dev
+<div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="k">get</span> <span class="n">install</span> <span class="n">libx11</span><span class="o">-</span><span class="n">dev</span> <span class="n">libgl1</span><span class="o">-</span><span class="n">mesa</span><span class="o">-</span><span class="n">dev</span> <span class="n">libxrender</span><span class="o">-</span><span class="n">dev</span> <span class="n">libxext</span><span class="o">-</span><span class="n">dev</span> <span class="n">portaudio19</span><span class="o">-</span><span class="n">dev</span> <span class="n">libavcodec</span><span class="o">-</span><span class="n">dev</span> <span class="n">libavformat</span><span class="o">-</span><span class="n">dev</span> <span class="n">libavdevice</span><span class="o">-</span><span class="n">dev</span>
 </pre></div>
 
 
 <p>I ommited libswscale-dev, as it appears another version is installed. Let's hope that it'll compile ok!</p>
 <p>It appears to be missing libusb too!</p>
-<div class="highlight"><pre><span></span>apt-get install libusb-1.0.0-dev
+<div class="highlight"><pre><span></span><span class="n">apt</span><span class="o">-</span><span class="k">get</span> <span class="n">install</span> <span class="n">libusb</span><span class="o">-</span><span class="mi">1</span><span class="p">.</span><span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="o">-</span><span class="n">dev</span>
 </pre></div>
 
 
 <p>ffmpeg - because I think we want v4l support, for boblight</p>
 <p>but we need to install libswscale2 in order for it to compile --with-ffmpeg</p>
-<div class="highlight"><pre><span></span>apt-get remove ffmpeg libav-tools libavfilter2 libavfilter4 libswscale2 xbmc xbmc-bin
+<div class="highlight"><pre><span></span><span class="n">apt</span><span class="o">-</span><span class="k">get</span> <span class="n">remove</span> <span class="n">ffmpeg</span> <span class="n">libav</span><span class="o">-</span><span class="n">tools</span> <span class="n">libavfilter2</span> <span class="n">libavfilter4</span> <span class="n">libswscale2</span> <span class="n">xbmc</span> <span class="n">xbmc</span><span class="o">-</span><span class="n">bin</span>
 </pre></div>
 
 
 <p>let's install XBMC again, because it's a nice to have</p>
-<div class="highlight"><pre><span></span>apt-get install xbmc
+<div class="highlight"><pre><span></span><span class="n">apt</span><span class="o">-</span><span class="k">get</span> <span class="n">install</span> <span class="n">xbmc</span>
 </pre></div>
 
 
@@ -129,50 +129,50 @@ http://steamcommunity.com/groups/steamuniverse/discussions/1/648816742742587380/
 <p>https://github.com/timsat/boblight-lightpack</p>
 </blockquote>
 <p>let's try that again... that worked</p>
-<div class="highlight"><pre><span></span>./configure --with-ffmpeg
+<div class="highlight"><pre><span></span><span class="p">.</span><span class="o">/</span><span class="n">configure</span> <span class="c1">--with-ffmpeg</span>
 </pre></div>
 
 
 <p>You will have to open boblight-v4l.cpp and videogabber.cpp and add the unistd header to the code, for some reason this will cause errors when you try to compile boblight</p>
-<div class="highlight"><pre><span></span><span class="n">vim</span> <span class="n">src</span><span class="o">/</span><span class="n">clients</span><span class="o">/</span><span class="n">boblight</span><span class="o">-</span><span class="n">v4l</span><span class="o">/</span><span class="n">boblight</span><span class="o">-</span><span class="n">v4l</span><span class="p">.</span><span class="n">cpp</span>
-<span class="p">(</span><span class="n">some</span> <span class="n">where</span> <span class="n">with</span> <span class="n">the</span> <span class="n">rest</span> <span class="n">of</span> <span class="n">the</span> <span class="n">headers</span><span class="p">)</span>
-<span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+<div class="highlight"><pre><span></span><span class="nv">vim</span> <span class="nv">src</span><span class="o">/</span><span class="nv">clients</span><span class="o">/</span><span class="nv">boblight</span><span class="o">-</span><span class="nv">v4l</span><span class="o">/</span><span class="nv">boblight</span><span class="o">-</span><span class="nv">v4l</span>.<span class="nv">cpp</span>
+<span class="ss">(</span><span class="nv">some</span> <span class="nv">where</span> <span class="nv">with</span> <span class="nv">the</span> <span class="nv">rest</span> <span class="nv">of</span> <span class="nv">the</span> <span class="nv">headers</span><span class="ss">)</span>
+#<span class="k">include</span> <span class="o">&lt;</span><span class="nv">unistd</span>.<span class="nv">h</span><span class="o">&gt;</span>
 </pre></div>
 
 
-<div class="highlight"><pre><span></span><span class="n">vim</span> <span class="n">src</span><span class="o">/</span><span class="n">clients</span><span class="o">/</span><span class="n">boblight</span><span class="o">-</span><span class="n">v4l</span><span class="o">/</span><span class="n">videograbber</span><span class="p">.</span><span class="n">cpp</span>
-<span class="p">(</span><span class="n">some</span> <span class="n">where</span> <span class="n">with</span> <span class="n">the</span> <span class="n">rest</span> <span class="n">of</span> <span class="n">the</span> <span class="n">headers</span><span class="p">)</span>
-<span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+<div class="highlight"><pre><span></span><span class="nv">vim</span> <span class="nv">src</span><span class="o">/</span><span class="nv">clients</span><span class="o">/</span><span class="nv">boblight</span><span class="o">-</span><span class="nv">v4l</span><span class="o">/</span><span class="nv">videograbber</span>.<span class="nv">cpp</span>
+<span class="ss">(</span><span class="nv">some</span> <span class="nv">where</span> <span class="nv">with</span> <span class="nv">the</span> <span class="nv">rest</span> <span class="nv">of</span> <span class="nv">the</span> <span class="nv">headers</span><span class="ss">)</span>
+#<span class="k">include</span> <span class="o">&lt;</span><span class="nv">unistd</span>.<span class="nv">h</span><span class="o">&gt;</span>
 </pre></div>
 
 
-<div class="highlight"><pre><span></span>./configure --with-ffmpeg
-make clean &amp;&amp; make
-sudo make install
+<div class="highlight"><pre><span></span><span class="p">.</span><span class="o">/</span><span class="n">configure</span> <span class="c1">--with-ffmpeg</span>
+<span class="n">make</span> <span class="n">clean</span> <span class="o">&amp;&amp;</span> <span class="n">make</span>
+<span class="n">sudo</span> <span class="n">make</span> <span class="n">install</span>
 </pre></div>
 
 
 <p>Hooray, we have a build. Now, we need to edit /etc/boblight.conf</p>
 <p>First, let's find the USB device</p>
-<div class="highlight"><pre><span></span>desktop@steamos:/usr/src/boblight-read-only/arduino$ lsusb
-Bus 001 Device 003: ID 1d50:6022 OpenMoko, Inc.
+<div class="highlight"><pre><span></span><span class="n">desktop</span><span class="nv">@steamos</span><span class="err">:</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">boblight</span><span class="o">-</span><span class="k">read</span><span class="o">-</span><span class="k">only</span><span class="o">/</span><span class="n">arduino</span><span class="err">$</span><span class="w"> </span><span class="n">lsusb</span><span class="w"></span>
+<span class="n">Bus</span><span class="w"> </span><span class="mi">001</span><span class="w"> </span><span class="n">Device</span><span class="w"> </span><span class="mi">003</span><span class="err">:</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="mi">1</span><span class="nl">d50</span><span class="p">:</span><span class="mi">6022</span><span class="w"> </span><span class="n">OpenMoko</span><span class="p">,</span><span class="w"> </span><span class="n">Inc</span><span class="p">.</span><span class="w"></span>
 </pre></div>
 
 
 <p>While we're playing with USB devices, we need to make the usb port readable by the steam user, so...</p>
-<div class="highlight"><pre><span></span>  idVendor           0x1d50 OpenMoko, Inc.
-  idProduct          0x6022
+<div class="highlight"><pre><span></span>  <span class="n">idVendor</span>           <span class="mi">0</span><span class="n">x1d50</span> <span class="n">OpenMoko</span><span class="p">,</span> <span class="n">Inc</span><span class="p">.</span>
+  <span class="n">idProduct</span>          <span class="mi">0</span><span class="n">x6022</span>
 </pre></div>
 
 
-<div class="highlight"><pre><span></span>sudo vim /etc/udev/rules.d/69-persistent-usb.rules
-and add
-ATTRS{idVendor}==&quot;1d50&quot;,ATTRS{idProduct}==&quot;6022&quot;,MODE=&quot;0666&quot;,GROUP=&quot;video&quot;
+<div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">vim</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">udev</span><span class="o">/</span><span class="n">rules</span><span class="p">.</span><span class="n">d</span><span class="o">/</span><span class="mi">69</span><span class="o">-</span><span class="n">persistent</span><span class="o">-</span><span class="n">usb</span><span class="p">.</span><span class="n">rules</span>
+<span class="k">and</span> <span class="k">add</span>
+<span class="n">ATTRS</span><span class="err">{</span><span class="n">idVendor</span><span class="err">}</span><span class="o">==</span><span class="ss">&quot;1d50&quot;</span><span class="p">,</span><span class="n">ATTRS</span><span class="err">{</span><span class="n">idProduct</span><span class="err">}</span><span class="o">==</span><span class="ss">&quot;6022&quot;</span><span class="p">,</span><span class="k">MODE</span><span class="o">=</span><span class="ss">&quot;0666&quot;</span><span class="p">,</span><span class="k">GROUP</span><span class="o">=</span><span class="ss">&quot;video&quot;</span>
 </pre></div>
 
 
 <p>Here is my version of boblight.conf that I pulled from my XBMC media centre</p>
-<div class="highlight"><pre><span></span>sudo vim /etc/boblight.conf
+<div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">vim</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">boblight</span><span class="p">.</span><span class="n">conf</span>
 </pre></div>
 
 
@@ -287,7 +287,7 @@ ATTRS{idVendor}==&quot;1d50&quot;,ATTRS{idProduct}==&quot;6022&quot;,MODE=&quot;
 
 
 <p>We now need the daemon and the client to launch when lightvm loads</p>
-<div class="highlight"><pre><span></span>sudo vim /etc/X11/Xsession.d/91boblight
+<div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">vim</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">X11</span><span class="o">/</span><span class="n">Xsession</span><span class="p">.</span><span class="n">d</span><span class="o">/</span><span class="mi">91</span><span class="n">boblight</span>
 </pre></div>
 
 
@@ -300,11 +300,11 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
 
 
 <p>And we need to add it to Xsession.options</p>
-<div class="highlight"><pre><span></span>sudo vim /etc/X11/Xsession.options
+<div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">vim</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">X11</span><span class="o">/</span><span class="n">Xsession</span><span class="p">.</span><span class="k">options</span>
 </pre></div>
 
 
-<div class="highlight"><pre><span></span>boblight
+<div class="highlight"><pre><span></span><span class="n">boblight</span>
 </pre></div>
 
 
@@ -312,7 +312,7 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
 <h3>These things FAILED</h3>
 <p>Now I tried doing this, but I could never get it to work. Appears SteamOS doesn't run through SysV? I don't know. I spent hours on this.</p>
 <p>Create a startup script in /etc/init.d</p>
-<div class="highlight"><pre><span></span>vim /etc/init.d/boblightd.sh
+<div class="highlight"><pre><span></span><span class="n">vim</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">init</span><span class="p">.</span><span class="n">d</span><span class="o">/</span><span class="n">boblightd</span><span class="p">.</span><span class="n">sh</span>
 </pre></div>
 
 
@@ -350,16 +350,16 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
 
 
 <p>Needs to run BEFORE lightdm</p>
-<div class="highlight"><pre><span></span>desktop@steamos:~$ sudo update-rc.d boblightd.sh defaults
+<div class="highlight"><pre><span></span><span class="n">desktop</span><span class="nv">@steamos</span><span class="err">:</span><span class="o">~</span><span class="err">$</span><span class="w"> </span><span class="n">sudo</span><span class="w"> </span><span class="k">update</span><span class="o">-</span><span class="n">rc</span><span class="p">.</span><span class="n">d</span><span class="w"> </span><span class="n">boblightd</span><span class="p">.</span><span class="n">sh</span><span class="w"> </span><span class="n">defaults</span><span class="w"></span>
 </pre></div>
 
 
             <div class="comments">
                 <div id="disqus_thread"></div>
                     <script type="text/javascript">
-                        var disqus_shortname = 'mattieidau';
-                        var disqus_identifier = 'posts/2014-11-boblightd-and-steamos.html';
-                        var disqus_url = '../posts/2014-11-boblightd-and-steamos.html';
+                        var disqus_shortname = 'spyn-me';
+                        var disqus_identifier = 'posts/2014-11-boblightd-and-steamos';
+                        var disqus_url = 'https://spyn.me/posts/2014-11-boblightd-and-steamos';
                         (function() {
                             var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
                             dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
@@ -378,9 +378,10 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
                     <div class="col-xs-4 col-sm-3 col-md-3 col-lg-3">
                         <div class="footer-title">Sitemap</div>
                         <ul class="list-unstyled">
-                            <li><a href="../archives.html">Archives</a></li>
-                            <li><a href="../tags.html">Tags</a></li>
-                            <li><a href="../authors.html">Authors</a></li>
+                            <li><a href="https://spyn.me/archives.html">Archives</a></li>
+                            <li><a href="https://spyn.me/tags.html">Tags</a></li>
+                            <li><a href="https://spyn.me/authors.html">Authors</a></li>
+                            <li><a href="https://spyn.me/feeds/all.atom.xml" type="application/atom+xml" rel="alternate">Atom Feed</a></li>
                         </ul>
                     </div>
                     <div class="col-xs-4 col-sm-3 col-md-3 col-lg-3">
@@ -390,9 +391,7 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
                             <li><a href="http://lastfm.com/user/spyn" target="_blank">lastfm</a></li>
                             <li><a href="http://github.com/spyn" target="_blank">github</a></li>
                             <li><a href="http://facebook.com/spynhugs" target="_blank">facebook</a></li>
-                            <li><a href="https://plus.google.com/+MattspynFinch/" target="_blank">googleplus</a></li>
                             <li><a href="http://www.youtube.com/user/evilspyn" target="_blank">youtube</a></li>
-                            <li><a href="https://reddit.com/u/spyn" target="_blank">reddit</a></li>
                         </ul>
                     </div>
                     <div class="col-xs-4 col-sm-3 col-md-3 col-lg-3">
@@ -402,7 +401,6 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
                             <li><a href="http://nanojuice.net" target="_blank">NanoJuice</a></li>
                             <li><a href="http://autodeist.com" target="_blank">Autodeist</a></li>
                             <li><a href="http://www.sanlive.com/" target="_blank">Sandy Live</a></li>
-                            <li><a href="http://barge.moochers.org" target="_blank">Barge</a></li>
                             <li><a href="http://prettygrouse.com/" target="_blank">Pretty Grouse!</a></li>
                             <li><a href="http://nick-howson.github.io" target="_blank">Nick Howson</a></li>
                         </ul>
@@ -417,7 +415,7 @@ boblight-X11 -x -i <span class="m">0</span>.03 -o <span class="nv">value</span><
                 </div>
             </div>
             <div class="footer-last">
-                    <small>&copy; Matt Finch 2015</small>
+                    <small>&copy; Matt Ellins 2019</small>
                 
             </div>            
         </div>
