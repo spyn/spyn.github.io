@@ -1,0 +1,53 @@
+$body-color: #515151;
+$white: #ffffff;
+$lightgray: #fafafa;
+$gray: #ecf0f1;
+$dark-gray: #a0a0a0;
+$dark-blue: #263959;
+$dark: #333030;
+$black: #000000;
+
+// from solarize dark theme
+$solz-dark-blue: #002b36;
+$solz-dark-blue-alt: #032027;
+$solz-orange: #cb4b16;
+$solz-purple: #6771c4;
+$solz-green: #648a05;
+$solz-blue: #208bd2;
+$solz-lighter-grey: #849496;
+$solz-light-grey: #586e75;
+$solz-aqua: #2ba094;
+
+// rac lol
+$rac-yellow: #ffd100;
+$rac-diesel: #182d3c;
+$rac-blue: #425563;
+$rac-grey: #aab4bb;
+
+// synthwave 84 - https://github.com/webrender/synthwave-x-fluoromachine 
+$sw-neon-blue: #61e2ff;
+$sw-darker-purple: #8a2dc033;
+$sw-dark-purple: #9963ff99;
+$sw-neon-purple: #9963ff;
+$sw-yellow: #ffcc00;
+$sw-pink: #fc199a;
+$sw-dark-pink: #fc199a33;
+$sw-neon-pink: #fc28a8;
+$sw-grey: #ececec;
+
+$sw-grad-pink-purple: linear-gradient(to bottom, #200933 75%, #3d0b43);
+$sw-glow-dark-purple: 0 0 2px #393a33, 0 0 35px #ffffff44, 0 0 10px #8a2dc066, 0 0 2px #8a2dc066;
+
+/* -- also from Synthwave 84 code theme 
+ text-shadow: 0 0 2px #393a33, 0 0 35px #ffffff44, 0 0 10px #fc199a, 0 0 2px #fc199a;
+ background-image: linear-gradient(to bottom, #200933 75%, #3d0b43);
+ background-image:linear-gradient(90deg, rgba(252,25,154,.1) 1px, rgba(0,0,0,0) 1px), linear-gradient(0deg, rgba(252,25,154,.1) 1px, rgba(0,0,0,0) 1px);
+ background: linear-gradient(to bottom, #fff951 25%, #fc28a8);
+ background: linear-gradient(to bottom, #fc28a8, #03edf9) !important;
+ background: linear-gradient(to right, #fc28a8, #03edf9) !important;
+   background: linear-gradient(to bottom, #8a2dc0,  #fc28a8);
+   box-shadow: 0 0 5px #fc199a;
+   border-color: #8a2dc0; 
+   color: #241b2f; 
+ text-shadow: 0 0 2px #393a33, 0 0 35px #ffffff44, 0 0 10px #8a2dc066, 0 0 2px #8a2dc066;
+ */
