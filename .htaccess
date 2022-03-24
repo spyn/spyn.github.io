@@ -1,8 +1,0 @@
-Options +FollowSymLinks
-RewriteEngine on
-RedirectMatch 301 (/category/)(.*?) /tag/$2.html
-RedirectMatch 301 (.*\d{4}/\d{2}/.*?)/ $1.html
-#Redirect 301 /feed/ /feeds/all.atom.xml
-ErrorDocument 404 /404.html
-ErrorDocument 500 /500.html
-Options ExecCGI Includes IncludesNOEXEC SymLinksIfOwnerMatch -Indexes
