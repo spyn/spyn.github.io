@@ -1,1 +1,5 @@
-{"componentChunkName":"component---src-templates-tags-js","path":"/tags/linux/","result":{"data":{"allMarkdownRemark":{"totalCount":2,"edges":[{"node":{"fields":{"slug":"/boblight-and-steamos/"},"frontmatter":{"title":"boblightd and SteamOS","date":"November 01, 2014"}}},{"node":{"fields":{"slug":"/setting-up-steamos/"},"frontmatter":{"title":"Setting up SteamOS","date":"October 25, 2014"}}}]}},"pageContext":{"tag":"linux"}},"staticQueryHashes":["2478211480"]}
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/linux/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":2,"edges":[{"node":{"fields":{"slug":"/boblight-and-steamos/"},"frontmatter":{"title":"boblightd and SteamOS","date":"November 01, 2014"}}},{"node":{"fields":{"slug":"/setting-up-steamos/"},"frontmatter":{"title":"Setting up SteamOS","date":"October 25, 2014"}}}]}},"pageContext":{"tag":"linux"}},
+    "staticQueryHashes": ["2478211480"]}

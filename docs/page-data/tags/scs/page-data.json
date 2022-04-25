@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/scs/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/sitecore-migrating-from-tds-to-scs/"},"frontmatter":{"title":"Sitecore - Migrating from TDS to SCS","date":"April 18, 2022"}}}]}},"pageContext":{"tag":"scs"}},
+    "staticQueryHashes": ["2478211480"]}

@@ -1,1 +1,5 @@
-{"componentChunkName":"component---src-templates-tags-js","path":"/tags/steamos/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/boblight-and-steamos/"},"frontmatter":{"title":"boblightd and SteamOS","date":"November 01, 2014"}}}]}},"pageContext":{"tag":"steamos"}},"staticQueryHashes":["2478211480"]}
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/steamos/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/boblight-and-steamos/"},"frontmatter":{"title":"boblightd and SteamOS","date":"November 01, 2014"}}}]}},"pageContext":{"tag":"steamos"}},
+    "staticQueryHashes": ["2478211480"]}

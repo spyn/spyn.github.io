@@ -4,7 +4,7 @@ date: 2011-04-22 21:39 +0800
 description: If you want to know how I built it # Add post description (optional)
 img: ./pigin-sipe.png # Add image post (optional)
 # fig-caption: # Add figcaption (optional)
-tags: [pidgin, code, ocs] # add tag
+tags: [pidgin, dev, ocs] # add tag
 ---
 
 Update: You can now get builds off [sourceforge][].

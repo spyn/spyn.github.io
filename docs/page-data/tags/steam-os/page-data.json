@@ -1,1 +1,5 @@
-{"componentChunkName":"component---src-templates-tags-js","path":"/tags/steam-os/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/setting-up-steamos/"},"frontmatter":{"title":"Setting up SteamOS","date":"October 25, 2014"}}}]}},"pageContext":{"tag":"steam-os"}},"staticQueryHashes":["2478211480"]}
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/steam-os/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/setting-up-steamos/"},"frontmatter":{"title":"Setting up SteamOS","date":"October 25, 2014"}}}]}},"pageContext":{"tag":"steam-os"}},
+    "staticQueryHashes": ["2478211480"]}

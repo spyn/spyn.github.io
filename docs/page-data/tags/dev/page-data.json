@@ -1,0 +1,5 @@
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/dev/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":3,"edges":[{"node":{"fields":{"slug":"/sitecore-migrating-from-tds-to-scs/"},"frontmatter":{"title":"Sitecore - Migrating from TDS to SCS","date":"April 18, 2022"}}},{"node":{"fields":{"slug":"/compiled-pidgin-sipe-plugin-for-win32/"},"frontmatter":{"title":"Pidgin SIPE plugin for Win32","date":"April 22, 2011"}}},{"node":{"fields":{"slug":"/combined-graph-in-asp-net-with-owc/"},"frontmatter":{"title":"Combined graph in ASP.NET with OWC","date":"September 14, 2009"}}}]}},"pageContext":{"tag":"dev"}},
+    "staticQueryHashes": ["2478211480"]}

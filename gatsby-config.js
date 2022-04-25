@@ -71,7 +71,7 @@ module.exports = {
       options: {
         trackingId: `UA-19229033-2`,
       },
-    },
+    },/*
     `gatsby-plugin-feed`,
     {
       resolve: `gatsby-plugin-manifest`,
@@ -82,9 +82,9 @@ module.exports = {
         background_color: `#663399`,
         theme_color: `#663399`,
         display: `minimal-ui`,
-        icon: `./static/gatsby-icon.png`, // This path is relative to the root of the site.
+        icon: `./static/gatsby-icon.png`, 
       },
-    },
+    },*/
     // whats this? `gatsby-plugin-offline`,
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-sass`,

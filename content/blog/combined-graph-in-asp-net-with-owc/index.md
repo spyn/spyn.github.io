@@ -4,7 +4,7 @@ date: 2009-09-14 11:49 +0800
 description: It took me a while to find out how to get a hang of making graphs in ASP.NET combined with OWC # Add post description (optional)
 img: ./owc-asp.jpg # Add image post (optional)
 # fig-caption: # Add figcaption (optional)
-tags: [code, .net, web-dev] # add tag
+tags: [code, .net, web-dev, dev] # add tag
 ---
 
 It took me a while to find out how to get a hang of making graphs in
