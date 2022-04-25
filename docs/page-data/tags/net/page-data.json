@@ -1,1 +1,5 @@
-{"componentChunkName":"component---src-templates-tags-js","path":"/tags/net/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/combined-graph-in-asp-net-with-owc/"},"frontmatter":{"title":"Combined graph in ASP.NET with OWC","date":"September 14, 2009"}}}]}},"pageContext":{"tag":".net"}},"staticQueryHashes":["2478211480"]}
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/net/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/combined-graph-in-asp-net-with-owc/"},"frontmatter":{"title":"Combined graph in ASP.NET with OWC","date":"September 14, 2009"}}}]}},"pageContext":{"tag":".net"}},
+    "staticQueryHashes": ["2478211480"]}

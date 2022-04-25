@@ -1,1 +1,5 @@
-{"componentChunkName":"component---src-templates-tags-js","path":"/tags/laser-tag/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/zone-warriors-updates/"},"frontmatter":{"title":"Zone Warriors updates","date":"February 22, 2010"}}}]}},"pageContext":{"tag":"laser-tag"}},"staticQueryHashes":["2478211480"]}
+{
+    "componentChunkName": "component---src-templates-tags-js",
+    "path": "/tags/laser-tag/",
+    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/zone-warriors-updates/"},"frontmatter":{"title":"Zone Warriors updates","date":"February 22, 2010"}}}]}},"pageContext":{"tag":"laser-tag"}},
+    "staticQueryHashes": ["2478211480"]}
