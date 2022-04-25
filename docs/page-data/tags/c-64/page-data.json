@@ -1,5 +1,1 @@
-{
-    "componentChunkName": "component---src-templates-tags-js",
-    "path": "/tags/c-64/",
-    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/commodore-64-ringtones-and-notifications-for-android/"},"frontmatter":{"title":"Commodore 64 phone tones","date":"February 04, 2012"}}}]}},"pageContext":{"tag":"c64"}},
-    "staticQueryHashes": ["2478211480"]}
+{"componentChunkName":"component---src-templates-tags-js","path":"/tags/c-64/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/commodore-64-ringtones-and-notifications-for-android/"},"frontmatter":{"title":"Commodore 64 phone tones","date":"February 04, 2012"}}}]}},"pageContext":{"tag":"c64"}},"staticQueryHashes":["2478211480"]}

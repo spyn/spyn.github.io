@@ -1,5 +1,1 @@
-{
-    "componentChunkName": "component---src-templates-tags-js",
-    "path": "/tags/rollerskating/",
-    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/i-got-my-wheels-back/"},"frontmatter":{"title":"I got my wheels back","date":"May 19, 2010"}}}]}},"pageContext":{"tag":"rollerskating"}},
-    "staticQueryHashes": ["2478211480"]}
+{"componentChunkName":"component---src-templates-tags-js","path":"/tags/rollerskating/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/i-got-my-wheels-back/"},"frontmatter":{"title":"I got my wheels back","date":"May 19, 2010"}}}]}},"pageContext":{"tag":"rollerskating"}},"staticQueryHashes":["2478211480"]}

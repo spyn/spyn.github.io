@@ -1,5 +1,1 @@
-{
-    "componentChunkName": "component---src-templates-tags-js",
-    "path": "/tags/systems/",
-    "result": {"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/automate-my-everythings/"},"frontmatter":{"title":"Automate my everythings","date":"June 13, 2012"}}}]}},"pageContext":{"tag":"systems"}},
-    "staticQueryHashes": ["2478211480"]}
+{"componentChunkName":"component---src-templates-tags-js","path":"/tags/systems/","result":{"data":{"allMarkdownRemark":{"totalCount":1,"edges":[{"node":{"fields":{"slug":"/automate-my-everythings/"},"frontmatter":{"title":"Automate my everythings","date":"June 13, 2012"}}}]}},"pageContext":{"tag":"systems"}},"staticQueryHashes":["2478211480"]}

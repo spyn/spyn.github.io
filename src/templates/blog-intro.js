@@ -1,5 +1,0 @@
-/* 
-
-Intro page on the list page
-
-*/

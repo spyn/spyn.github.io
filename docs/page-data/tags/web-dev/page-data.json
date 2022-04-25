@@ -1,5 +1,1 @@
-{
-    "componentChunkName": "component---src-templates-tags-js",
-    "path": "/tags/web-dev/",
-    "result": {"data":{"allMarkdownRemark":{"totalCount":2,"edges":[{"node":{"fields":{"slug":"/commodore-64-ringtones-and-notifications-for-android/"},"frontmatter":{"title":"Commodore 64 phone tones","date":"February 04, 2012"}}},{"node":{"fields":{"slug":"/combined-graph-in-asp-net-with-owc/"},"frontmatter":{"title":"Combined graph in ASP.NET with OWC","date":"September 14, 2009"}}}]}},"pageContext":{"tag":"web-dev"}},
-    "staticQueryHashes": ["2478211480"]}
+{"componentChunkName":"component---src-templates-tags-js","path":"/tags/web-dev/","result":{"data":{"allMarkdownRemark":{"totalCount":2,"edges":[{"node":{"fields":{"slug":"/commodore-64-ringtones-and-notifications-for-android/"},"frontmatter":{"title":"Commodore 64 phone tones","date":"February 04, 2012"}}},{"node":{"fields":{"slug":"/combined-graph-in-asp-net-with-owc/"},"frontmatter":{"title":"Combined graph in ASP.NET with OWC","date":"September 14, 2009"}}}]}},"pageContext":{"tag":"web-dev"}},"staticQueryHashes":["2478211480"]}
